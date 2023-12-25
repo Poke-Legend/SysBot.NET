@@ -578,24 +578,10 @@ namespace SysBot.Pokemon
             // Clone the original Pokémon
             res = pk.Clone();
 
-            // Check if the trade type is not specific
-            if (trade.Type is not PokeTradeType.Specific)
-            {
-                Log("Cannot apply Partner details: Not a specific trade request.");
-                return false;
-            }
-
-            // Check if the Pokémon is not native and forcing trade partner info is not allowed
-            if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
-            {
-                Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
-                return false;
-            }
-
-            // Only override trainer details if the user didn't specify OT details in the request
+            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
             if (HasSetDetails(pk, fallback: sav))
             {
-                Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
+                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
             }
 

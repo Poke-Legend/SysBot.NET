@@ -463,6 +463,13 @@ namespace SysBot.Pokemon
             // Clone the original Pokémon
             res = pk.Clone();
 
+            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            if (HasSetDetails(pk, fallback: sav))
+            {
+                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+                return false;
+            }
+
             // Apply partner details to the Pokémon
             res.OT_Name = partner.TrainerName;
             res.OT_Gender = partner.Info.Gender;
@@ -477,6 +484,12 @@ namespace SysBot.Pokemon
                 res.PID = (uint)((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF);
             }
 
+            // Refresh checksum if invalid
+            if (!pk.ChecksumValid)
+            {
+                res.RefreshChecksum();
+            }
+
             // Log the successful application of trade partner details
             Log($"Applying trade partner details: {partner.TrainerName} " +
                 $"({(partner.Info.Gender == 0 ? "M" : "F")}), TID: {partner.Info.DisplayTID:000000}, " +
@@ -485,6 +498,7 @@ namespace SysBot.Pokemon
 
             return true;
         }
+
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {

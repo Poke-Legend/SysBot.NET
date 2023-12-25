@@ -503,15 +503,15 @@ namespace SysBot.Pokemon
             return PokeTradeResult.Success;
         }
 
-        private bool CanUsePartnerDetails(PK8 pk, SAV8SWSH sav, TradePartnerSWSH partner, PokeTradeDetail<PK8> trade, out PK8 res)
+          private bool CanUsePartnerDetails(PK8 pk, SAV8SWSH sav, TradePartnerSWSH partner, PokeTradeDetail<PK8> trade, out PK8 res)
         {
             // Clone the original Pokémon
             res = pk.Clone();
 
-            // Check if the Pokémon is not native and trade partner info should not be forced
-            if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
+            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            if (HasSetDetails(pk, fallback: sav))
             {
-                Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
+                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
             }
 
@@ -527,6 +527,12 @@ namespace SysBot.Pokemon
             if (pk.IsShiny)
             {
                 res.PID = (uint)(((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF));
+            }
+
+            // Refresh checksum if invalid
+            if (!pk.ChecksumValid)
+            {
+                res.RefreshChecksum();
             }
 
             // Log the successful application of trade partner details
