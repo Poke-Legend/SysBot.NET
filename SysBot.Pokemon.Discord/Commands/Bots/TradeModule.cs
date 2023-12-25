@@ -108,6 +108,11 @@ namespace SysBot.Pokemon.Discord
                         Author = author,
                         Color = Color.Red
                     }
+                    .WithDescription(imsg)
+                    .WithThumbnailUrl("https://sysbots.net/wp-content/uploads/2023/09/logosys.png")
+                    .WithCurrentTimestamp()
+                    .Build();
+
 
                     await ReplyAsync(null, false, oopsEmbed).ConfigureAwait(false);
                     return;
@@ -144,17 +149,33 @@ namespace SysBot.Pokemon.Discord
         [Alias("t")]
         [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-        public async Task TradeAsync([Summary("Showdown Set")][Remainder] string content)
+        public async Task InitiatePokemonTrade([Summary("Showdown Set")][Remainder] string showdownSet)
         {
-            var code = Info.GetRandomTradeCode();
-            await TradeAsync(code, content).ConfigureAwait(false);
+            int tradeCode = GenerateRandomTradeCode();
+            await ExecutePokemonTradeAsync(tradeCode, showdownSet);
         }
 
         [Command("trade")]
         [Alias("t")]
         [Summary("Makes the bot trade you the attached file.")]
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-        public async Task TradeAsyncAttatch()
+        public async Task TradeAsyncAttachFile()
+        {
+            int tradeCode = GenerateRandomTradeCode();
+            await InitiateTradeWithCodeAsync(tradeCode);
+        }
+
+        private static int GenerateRandomTradeCode()
+        {
+            return Info.GetRandomTradeCode();
+        }
+
+        private async Task ExecutePokemonTradeAsync(int code, string showdownSet)
+        {
+            await TradeAsync(code, showdownSet).ConfigureAwait(false);
+        }
+
+        private async Task InitiateTradeWithCodeAsync(int code)
         {
             await TradeAsyncAttach(code).ConfigureAwait(false);
         }

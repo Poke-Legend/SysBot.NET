@@ -24,6 +24,7 @@ namespace SysBot.Pokemon.Discord
         private static EmbedBuilder Embed { get; set; } = new();
 
         private static string? ETA;
+        private static string? EmbedMsg;
         private static string? Queuepos;
         private static QueueResultAdd? Added;
 
@@ -91,11 +92,13 @@ namespace SysBot.Pokemon.Discord
             }
 
         }
+      
         public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, int catchID = 0)
         {
             await AddToQueueAsync(context, code, trainer, sig, trade, routine, type, context.User, catchID).ConfigureAwait(false);
         }
 
+      
         private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out string msg2, int catchID = 0)
         {
 
@@ -115,11 +118,12 @@ namespace SysBot.Pokemon.Discord
 
             if (Added == QueueResultAdd.AlreadyInQueue && !mgr.CanUseSudo(trader.Id))
             {
-                EmbedBuilder embed = new EmbedBuilder();
+                EmbedBuilder embed = new()
+                {
+                    Description = inqueuemsg,
 
-                embed.Description = inqueuemsg;
-
-                embed.Color = GetDiscordColor(pk.IsShiny ? ShinyMap[((Species)pk.Species, pk.Form)] : (PersonalColor)pk.PersonalInfo.Color);
+                    Color = GetDiscordColor(pk.IsShiny ? ShinyMap[((Species)pk.Species, pk.Form)] : (PersonalColor)pk.PersonalInfo.Color)
+                };
 
                 context.Channel.SendMessageAsync(embed: embed.Build());
 
