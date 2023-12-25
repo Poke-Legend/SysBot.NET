@@ -302,22 +302,39 @@ namespace SysBot.Pokemon
         "https://www.serebii.net/itemdex/sprites/legends/{0}.png",
     };
 
-                foreach (var pattern in urlPatterns)
+            foreach (var pattern in urlPatterns)
+            {
+                string testUrl = string.Format(pattern, sanitizedItemName);
+                if (await IsUrlValid(testUrl))
                 {
-                    string testUrl = string.Format(pattern, sanitizedItemName);
-
-                    // Asynchronously send a HEAD request to check if the URL is valid
-                    if (await IsUrlValid(client, testUrl))
-                    {
-                        // Return the first valid URL found
-                        return testUrl;
-                    }
+                    return testUrl;
                 }
             }
 
-            // Return a default image URL if none are valid
             return "https://sysbots.net/wp-content/uploads/2023/12/No-image-found.jpg";
         }
+
+        private static async Task<bool> IsUrlValid(string url)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Head, url);
+                var response = await StaticHttpClient.Client.SendAsync(request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogText($"Exception occurred while checking URL: {url} - {ex.Message}");
+                return false;
+            }
+        }
+
+        public static class StaticHttpClient
+        {
+            public static readonly HttpClient Client = new();
+        }
+
+
 
         private static async Task<bool> IsUrlValid(HttpClient client, string url)
         {
