@@ -414,43 +414,69 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot
 
     private bool CanUsePartnerDetails(PB8 pk, SAV8BS sav, TradePartnerBS partner, PokeTradeDetail<PB8> trade, out PB8 res)
     {
-        // Clone the original Pokémon
-        res = pk.Clone();
+        res = ClonePokemon(pk);
 
-        //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
-        if (HasSetDetails(pk, fallback: sav))
+        if (!CanOverrideTrainerDetails(pk, sav))
         {
-            Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+            LogCannotApplyPartnerDetails();
             return false;
         }
 
-        // Apply partner details to the Pokémon
-        res.OT_Name = partner.TrainerName;
-        res.OT_Gender = partner.Gender;
-        res.TrainerTID7 = partner.TID7;
-        res.TrainerSID7 = partner.SID7;
-        res.Language = partner.Language;
-        res.Version = partner.Game;
-
-        // Adjust PID for shiny Pokémon
-        if (pk.IsShiny)
-        {
-            res.PID = (uint)(((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF));
-        }
-
-        // Refresh checksum if invalid
-        if (!pk.ChecksumValid)
-        {
-            res.RefreshChecksum();
-        }
-
-        // Log the successful application of trade partner details
-        Log($"Applying trade partner details: {partner.TrainerName} " +
-            $"({(partner.Gender == 0 ? "M" : "F")}), TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, " +
-            $"{(LanguageID)partner.Language} ({(GameVersion)res.Version})");
+        ApplyPartnerDetails(partner, ref res);
+        AdjustPIDForShinyPokemon(pk, ref res);
+        RefreshChecksumIfInvalid(pk, ref res);
+        LogAppliedPartnerDetails(partner, res);
 
         return true;
     }
+
+    private static PB8 ClonePokemon(PB8 pokemon)
+    {
+        return pokemon.Clone();
+    }
+
+    private bool CanOverrideTrainerDetails(PB8 pokemon, SAV8BS saveFile)
+    {
+        return !HasSetDetails(pokemon, fallback: saveFile);
+    }
+
+    private void LogCannotApplyPartnerDetails()
+    {
+        Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
+    }
+
+    private static void ApplyPartnerDetails(TradePartnerBS partner, ref PB8 pokemon)
+    {
+        pokemon.OT_Name = partner.TrainerName;
+        pokemon.OT_Gender = partner.Gender;
+        pokemon.TrainerTID7 = partner.TID7;
+        pokemon.TrainerSID7 = partner.SID7;
+        pokemon.Language = partner.Language;
+        pokemon.Version = partner.Game;
+    }
+
+    private static void AdjustPIDForShinyPokemon(PB8 original, ref PB8 pokemon)
+    {
+        if (original.IsShiny)
+        {
+            pokemon.PID = (uint)(((pokemon.TID16 ^ pokemon.SID16 ^ (pokemon.PID & 0xFFFF) ^ original.ShinyXor) << 16) | (pokemon.PID & 0xFFFF));
+        }
+    }
+
+    private static void RefreshChecksumIfInvalid(PB8 original, ref PB8 pokemon)
+    {
+        if (!original.ChecksumValid)
+        {
+            pokemon.RefreshChecksum();
+        }
+    }
+
+    private void LogAppliedPartnerDetails(TradePartnerBS partner, PB8 pokemon)
+    {
+        string genderSymbol = partner.Gender == 0 ? "M" : "F";
+        Log($"Applying trade partner details: {partner.TrainerName} ({genderSymbol}), TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)pokemon.Version})");
+    }
+
 
 
     private bool HasSetDetails(PKM set, ITrainerInfo fallback)
