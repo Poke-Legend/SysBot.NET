@@ -342,8 +342,8 @@ namespace SysBot.Pokemon
         {
             // Base URL setup
             string baseUrl = fullSize
-                ? "https://raw.githubusercontent.com/zyro670/HomeImages/master/512x512/poke_capture_"
-                : "https://raw.githubusercontent.com/zyro670/HomeImages/master/128x128/poke_capture_";
+                ? "https://raw.githubusercontent.com/Poke-Legend/HomeImages/master/128x128/poke_capture_"
+                : "https://raw.githubusercontent.com/Poke-Legend/HomeImages/master/128x128/poke_capture_";
 
             // Format species and form
             string speciesFormatted = pkm.Species.ToString("D4");
@@ -396,11 +396,7 @@ namespace SysBot.Pokemon
                 form = pkm.Species == (ushort)Species.Basculegion ? pkm.Gender : form;
             }
         }
-
-
-       
-
-        public static void EncounterScaleLogs(PK9 pk, string filepath = "")
+         public static void EncounterScaleLogs(PK9 pk, string filepath = "")
         {
             if (filepath == "")
                 filepath = "EncounterScaleLogPretty.txt";
