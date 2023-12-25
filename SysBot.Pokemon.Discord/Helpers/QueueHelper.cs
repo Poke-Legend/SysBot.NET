@@ -150,7 +150,7 @@ namespace SysBot.Pokemon.Discord
             if ((t == PokeTradeType.Specific || t == PokeTradeType.SupportTrade || t == PokeTradeType.Giveaway) && pk.Species != 0)
                 pokeName = $"{(hub.Config.Trade.UseTradeEmbeds ? "" : t == PokeTradeType.SupportTrade && pk.Species != (int)Species.Ditto && pk.HeldItem != 0 ? $" Receiving: {(Species)pk.Species} ({ShowdownParsing.GetShowdownText(pk).Split('@', '\n')[1].Trim()})" : $" Receiving: {(Species)pk.Species}. ")}";
             string? pokeName2 = $" Receiving: {(t == PokeTradeType.SupportTrade && pk.Species != (int)Species.Ditto && pk.HeldItem != 0 ? $"{(Species)pk.Species} ({ShowdownParsing.GetShowdownText(pk).Split('@', '\n')[1].Trim()})" : $"{(Species)pk.Species}")}.";
-            msg = $" Trade Code sent to DM. ";
+            msg = $" Trade Code sent to DM. \n ";
             msg2 = $"{trader.Mention} - Thank you for ordering via {type} please trade with us again soon{ticketID}. ";
             EmbedMsg = msg2;
             Queuepos = $" You are in queue #{position.Position} \n{msg}";

@@ -159,13 +159,13 @@ namespace SysBot.Pokemon.Discord
         [Alias("t")]
         [Summary("Makes the bot trade you the attached file.")]
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-        public async Task Tra()
+        public async Task TradeAsyncAttatch()
         {
             var code = Info.GetRandomTradeCode();
             await TradeAsyncAttach(code).ConfigureAwait(false);
         }
 
-
+        
         [Command("banTrade")]
         [Alias("bt")]
         [RequireQueueRole(nameof(DiscordManager.FavoredRoles))]
