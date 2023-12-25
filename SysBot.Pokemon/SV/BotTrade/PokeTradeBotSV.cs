@@ -463,7 +463,6 @@ namespace SysBot.Pokemon
             // Clone the original Pokémon
             res = pk.Clone();
 
-            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
             if (HasSetDetails(pk, fallback: sav))
             {
                 Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
