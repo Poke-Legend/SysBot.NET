@@ -426,6 +426,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot
 
         // Apply partner details to the Pokémon
         res.OT_Name = partner.TrainerName;
+        res.OT_Gender = partner.Gender;
         res.TrainerTID7 = partner.TID7;
         res.TrainerSID7 = partner.SID7;
         res.Language = partner.Language;
@@ -444,11 +445,13 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot
         }
 
         // Log the successful application of trade partner details
-        Log($"Applying trade partner details: {partner.TrainerName}, " +
-            $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)res.Version})");
+        Log($"Applying trade partner details: {partner.TrainerName} " +
+            $"({(partner.Gender == 0 ? "M" : "F")}), TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, " +
+            $"{(LanguageID)partner.Language} ({(GameVersion)res.Version})");
 
         return true;
     }
+
 
     private bool HasSetDetails(PKM set, ITrainerInfo fallback)
     {
