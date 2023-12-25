@@ -276,9 +276,16 @@ namespace SysBot.Pokemon
                 return PokeTradeResult.RecoverStart;
             }
 
+            // Retrieve the TradeData from the poke object
             var toSend = poke.TradeData;
+
+            // Check if the species of the Pokémon to send is not 0 (indicating a valid Pokémon)
             if (toSend.Species != 0)
+            {
+                // Asynchronously set the Pokémon in the box at the specified offset
                 await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
+            }
+
 
             // Line for Trade Display Notifier
             TradeExtensions<PK9>.SVTrade = toSend;
@@ -368,10 +375,16 @@ namespace SysBot.Pokemon
 
             if (Hub.Config.Trade.UseTradePartnerDetails && CanUsePartnerDetails(toSend, sav, tradePartner, poke, out var toSendEdited))
             {
+                // Update the Pokémon to be sent with the edited details
                 toSend = toSendEdited;
+
+                // Set the Pokémon in the box with the updated details
                 await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
+
+                // Update the trade extension with the modified Pokémon
                 TradeExtensions<PK9>.SVTrade = toSend;
             }
+
 
             poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
 
@@ -447,29 +460,31 @@ namespace SysBot.Pokemon
 
         private bool CanUsePartnerDetails(PK9 pk, SAV9SV sav, TradePartnerSV partner, PokeTradeDetail<PK9> trade, out PK9 res)
         {
+            // Clone the original Pokémon
             res = pk.Clone();
 
-            //Invalid trade request. Ditto is often requested for Masuda method, better to not apply partner details.
+            // Check if the species is None, Ditto, or the trade type is not specific
             if ((Species)pk.Species is Species.None or Species.Ditto || trade.Type is not PokeTradeType.Specific)
             {
-                Log("Can not apply Partner details: Not a specific trade request.");
+                Log("Cannot apply Partner details: Not a specific trade request.");
                 return false;
             }
 
-            //Current handler cannot be past gen OT
+            // Check if the Pokémon is not native and trade partner info should not be forced
             if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
             {
-                Log("Can not apply Partner details: Current handler cannot be different gen OT.");
+                Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
                 return false;
             }
 
-            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            // Check if the Pokémon already has set trainer details
             if (HasSetDetails(pk, fallback: sav))
             {
-                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+                Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
             }
 
+            // Apply partner details to the Pokémon
             res.OT_Name = partner.TrainerName;
             res.OT_Gender = partner.Info.Gender;
             res.TrainerTID7 = partner.Info.DisplayTID;
@@ -477,45 +492,59 @@ namespace SysBot.Pokemon
             res.Language = partner.Info.Language;
             res.Version = partner.Info.Game;
 
+            // Adjust PID for shiny Pokémon
             if (pk.IsShiny)
+            {
                 res.PID = (uint)((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF);
+            }
 
+            // Refresh checksum if invalid
             if (!pk.ChecksumValid)
+            {
                 res.RefreshChecksum();
+            }
 
+            // Perform legality analysis on the modified Pokémon
             var la = new LegalityAnalysis(res);
             if (!la.Valid)
             {
+                // Attempt to resolve legality by reverting the version and refreshing checksum
                 res.Version = pk.Version;
-
                 if (!pk.ChecksumValid)
+                {
                     res.RefreshChecksum();
+                }
 
                 la = new LegalityAnalysis(res);
-
                 if (!la.Valid)
                 {
-                    Log("Can not apply Partner details:");
+                    Log("Cannot apply Partner details:");
                     Log(la.Report());
 
                     if (!Hub.Config.Legality.ForceTradePartnerInfo)
+                    {
                         return false;
+                    }
 
+                    // Try forcing trade partner info by discarding the game version
                     Log("Trying to force Trade Partner Info discarding the game version...");
                     res.Version = pk.Version;
                     la = new LegalityAnalysis(res);
 
                     if (!la.Valid)
                     {
-                        Log("Can not apply Partner details:");
+                        Log("Cannot apply Partner details:");
                         Log(la.Report());
                         return false;
                     }
                 }
             }
 
-            Log($"Applying trade partner details: {partner.TrainerName} ({(partner.Info.Gender == 0 ? "M" : "F")}), " +
-                $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Info.Language} ({(GameVersion)res.Version})");
+            // Log the successful application of trade partner details
+            Log($"Applying trade partner details: {partner.TrainerName} " +
+                $"({(partner.Info.Gender == 0 ? "M" : "F")}), TID: {partner.Info.DisplayTID:000000}, " +
+                $"SID: {partner.Info.DisplaySID:0000}, {(LanguageID)partner.Info.Language} " +
+                $"({(GameVersion)res.Version})");
 
             return true;
         }

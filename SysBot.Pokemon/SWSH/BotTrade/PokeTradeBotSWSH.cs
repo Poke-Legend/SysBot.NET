@@ -344,11 +344,16 @@ namespace SysBot.Pokemon
             var info = await GetGameInfo(token).ConfigureAwait(false);
             var tradePartner = new TradePartnerSWSH(trainerID, trainerName, info.version, info.language, info.gender);
 
+            // Check if using trade partner details is enabled and if partner details can be applied
             if (Hub.Config.Trade.UseTradePartnerDetails && CanUsePartnerDetails(toSend, sav, tradePartner, poke, out var toSendEdited))
             {
+                // Update the Pokémon to be sent with the edited details
                 toSend = toSendEdited;
+
+                // Asynchronously set the Pokémon with updated details in the box
                 await SetBoxPokemon(toSend, 0, 0, token, sav).ConfigureAwait(false);
             }
+
 
             // Confirm Box 1 Slot 1
             if (poke.Type == PokeTradeType.Specific || poke.Type == PokeTradeType.SupportTrade || poke.Type == PokeTradeType.Giveaway)
@@ -500,28 +505,31 @@ namespace SysBot.Pokemon
 
         private bool CanUsePartnerDetails(PK8 pk, SAV8SWSH sav, TradePartnerSWSH partner, PokeTradeDetail<PK8> trade, out PK8 res)
         {
+            // Clone the original Pokémon
             res = pk.Clone();
 
+            // Check if the species is None, Ditto, or the trade type is not specific
             if ((Species)pk.Species is Species.None or Species.Ditto || trade.Type is not PokeTradeType.Specific)
             {
-                Log("Can not apply Partner details: Not a specific trade request.");
+                Log("Cannot apply Partner details: Not a specific trade request.");
                 return false;
             }
 
-            //Current handler cannot be past gen OT
+            // Check if the Pokémon is not native and trade partner info should not be forced
             if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
             {
-                Log("Can not apply Partner details: Current handler cannot be different gen OT.");
+                Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
                 return false;
             }
 
-            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            // Check if the Pokémon already has set trainer details
             if (HasSetDetails(pk, fallback: sav))
             {
-                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+                Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
             }
 
+            // Apply partner details to the Pokémon
             res.OT_Name = partner.TrainerName;
             res.OT_Gender = partner.Gender;
             res.TrainerTID7 = partner.TID7;
@@ -529,20 +537,29 @@ namespace SysBot.Pokemon
             res.Language = partner.Language;
             res.Version = partner.Game;
 
+            // Adjust PID for shiny Pokémon
             if (pk.IsShiny)
+            {
                 res.PID = (uint)(((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF));
+            }
 
+            // Refresh checksum if invalid
             if (!pk.ChecksumValid)
+            {
                 res.RefreshChecksum();
+            }
 
+            // Perform legality analysis on the modified Pokémon
             var la = new LegalityAnalysis(res);
             if (!la.Valid)
             {
-                Log("Can not apply Partner details:");
+                Log("Cannot apply Partner details:");
                 Log(la.Report());
 
                 if (!Hub.Config.Legality.ForceTradePartnerInfo)
+                {
                     return false;
+                }
 
                 Log("Trying to force Trade Partner Info discarding the game version...");
                 res.Version = pk.Version;
@@ -550,17 +567,21 @@ namespace SysBot.Pokemon
 
                 if (!la.Valid)
                 {
-                    Log("Can not apply Partner details:");
+                    Log("Cannot apply Partner details:");
                     Log(la.Report());
                     return false;
                 }
             }
 
-            Log($"Applying trade partner details: {partner.TrainerName} ({(partner.Gender == 0 ? "M" : "F")}), " +
-                $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)res.Version})");
+            // Log the successful application of trade partner details
+            Log($"Applying trade partner details: {partner.TrainerName} " +
+                $"({(partner.Gender == 0 ? "M" : "F")}), TID: {partner.TID7:000000}, " +
+                $"SID: {partner.SID7:0000}, {(LanguageID)partner.Language} " +
+                $"({(GameVersion)res.Version})");
 
             return true;
         }
+
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {
