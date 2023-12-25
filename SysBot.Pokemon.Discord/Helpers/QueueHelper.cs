@@ -22,22 +22,14 @@ namespace SysBot.Pokemon.Discord
         private const uint MaxTradeCode = 9999_9999;
 
         private static EmbedBuilder Embed { get; set; } = new();
-        private static EmbedFieldBuilder Field { get; set; } = new();
-        private static EmbedAuthorBuilder Author { get; set; } = new();
-        private static EmbedFooterBuilder Footer { get; set; } = new();
 
         private static string? ETA;
-        private static string? EmbedMsg;
         private static string? Queuepos;
         private static QueueResultAdd? Added;
 
         public static MoveType TeraTypeOriginal { get; set; } // You can change the type to byte or int if required.
         public static MoveType TeraTypeOverride { get; set; }
         public static MoveType TeraType => TeraTypeUtil.GetTeraType((byte)TeraTypeOriginal, (byte)TeraTypeOverride);
-
-
-
-
         public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, int catchID = 0)
         {
             if ((uint)code > MaxTradeCode)
@@ -99,8 +91,6 @@ namespace SysBot.Pokemon.Discord
             }
 
         }
-
-
         public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, int catchID = 0)
         {
             await AddToQueueAsync(context, code, trainer, sig, trade, routine, type, context.User, catchID).ConfigureAwait(false);
@@ -312,7 +302,6 @@ namespace SysBot.Pokemon.Discord
             var channel = await trader.CreateDMChannelAsync().ConfigureAwait(false);
             await channel.SendMessageAsync(embed: Embed.Build()).ConfigureAwait(false);
         }
-
         private static string GetEggImageUrl(EggColor eggColor)
         {
             // Convert EggColor to PersonalColor using the mapping
