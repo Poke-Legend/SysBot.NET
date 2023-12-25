@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using static SysBot.Pokemon.PokeDataOffsetsSV;
 using static SysBot.Base.SwitchButton;
 using static System.Buffers.Binary.BinaryPrimitives;
+using System.Text;
 
 namespace SysBot.Pokemon
 {
@@ -182,6 +183,8 @@ namespace SysBot.Pokemon
 
         public async Task ReOpenGame(PokeTradeHubConfig config, CancellationToken token)
         {
+            // Reopen the game if we get soft-banned
+            Log("Potential soft-ban detected, reopening game just in case!");
             await CloseGame(config, token).ConfigureAwait(false);
             await StartGame(config, token).ConfigureAwait(false);
         }
@@ -203,7 +206,7 @@ namespace SysBot.Pokemon
             await Click(A, 1_000 + timing.ExtraTimeLoadProfile, token).ConfigureAwait(false);
 
             // Menus here can go in the order: Update Prompt -> Profile -> DLC check -> Unable to use DLC.
-            //  The user can optionally turn on the setting if they know of a breaking system update incoming.
+            // The user can optionally turn on the setting if they know of a breaking system update incoming.
             if (timing.AvoidSystemUpdate)
             {
                 await Click(DUP, 0_600, token).ConfigureAwait(false);
@@ -212,7 +215,7 @@ namespace SysBot.Pokemon
 
             await Click(A, 1_000 + timing.ExtraTimeCheckDLC, token).ConfigureAwait(false);
             // If they have DLC on the system and can't use it, requires an UP + A to start the game.
-            // Should be harmless otherwise since they'll be in loading screen.
+            // Should be harmless otherwise since they'll be in the loading screen.
             await Click(DUP, 0_600, token).ConfigureAwait(false);
             await Click(A, 0_600, token).ConfigureAwait(false);
 
@@ -229,8 +232,8 @@ namespace SysBot.Pokemon
             {
                 await Task.Delay(1_000, token).ConfigureAwait(false);
                 timer -= 1_000;
-                // We haven't made it back to overworld after a minute, so press A every 6 seconds hoping to restart the game.
-                // Don't risk it if hub is set to avoid updates.
+                // We haven't made it back to the overworld after a minute, so press A every 6 seconds hoping to restart the game.
+                // Don't risk it if the hub is set to avoid updates.
                 if (timer <= 0 && !timing.AvoidSystemUpdate)
                 {
                     Log("Still not in the game, initiating rescue protocol!");
