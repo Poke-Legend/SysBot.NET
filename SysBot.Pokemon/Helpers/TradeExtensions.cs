@@ -293,10 +293,8 @@ namespace SysBot.Pokemon
 
         public static async Task<string> ItemImg(string itemName)
         {
-            // Sanitize the item name to include only alphanumeric characters and periods
             string sanitizedItemName = Regex.Replace(itemName, @"[^\w\.]+", "").ToLower();
 
-            // List of possible URL patterns
             var urlPatterns = new List<string>
     {
         "https://www.serebii.net/itemdex/sprites/pgl/{0}.png",
@@ -304,8 +302,6 @@ namespace SysBot.Pokemon
         "https://www.serebii.net/itemdex/sprites/legends/{0}.png",
     };
 
-            using (var client = new HttpClient())
-            {
                 foreach (var pattern in urlPatterns)
                 {
                     string testUrl = string.Format(pattern, sanitizedItemName);
