@@ -619,31 +619,6 @@ namespace SysBot.Pokemon
                 res.RefreshChecksum();
             }
 
-            // Perform legality analysis on the modified Pokémon
-            var la = new LegalityAnalysis(res);
-            if (!la.Valid)
-            {
-                Log("Cannot apply Partner details:");
-                Log(la.Report());
-
-                if (!Hub.Config.Legality.ForceTradePartnerInfo)
-                {
-                    return false;
-                }
-
-                // Attempt to force Trade Partner Info by discarding the game version
-                Log("Trying to force Trade Partner Info discarding the game version...");
-                res.Version = pk.Version;
-                la = new LegalityAnalysis(res);
-
-                if (!la.Valid)
-                {
-                    Log("Cannot apply Partner details:");
-                    Log(la.Report());
-                    return false;
-                }
-            }
-
             // Log the successful application of trade partner details
             Log($"Applying trade partner details: {partner.TrainerName} " +
                 $"({(partner.Gender == 0 ? "M" : "F")}), TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, " +
@@ -651,7 +626,6 @@ namespace SysBot.Pokemon
 
             return true;
         }
-
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {

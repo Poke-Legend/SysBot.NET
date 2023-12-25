@@ -417,30 +417,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot
         // Clone the original Pokémon
         res = pk.Clone();
 
-        // Check if the trade type is not specific
-        if (trade.Type is not PokeTradeType.Specific)
-        {
-            Log("Cannot apply Partner details: Not a specific trade request.");
-            return false;
-        }
-
-        // Check if the Pokémon is not native and forcing trade partner info is not allowed
-        if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
-        {
-            Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
-            return false;
-        }
-
-        // Only override trainer details if the user didn't specify OT details in the request
-        if (HasSetDetails(pk, fallback: sav))
-        {
-            Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
-            return false;
-        }
-
         // Apply partner details to the Pokémon
         res.OT_Name = partner.TrainerName;
-        res.OT_Gender = partner.Gender; // TODO: This line is commented out, needs implementation
         res.TrainerTID7 = partner.TID7;
         res.TrainerSID7 = partner.SID7;
         res.Language = partner.Language;
@@ -458,38 +436,12 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot
             res.RefreshChecksum();
         }
 
-        // Perform legality analysis on the modified Pokémon
-        var la = new LegalityAnalysis(res);
-        if (!la.Valid)
-        {
-            Log("Cannot apply Partner details:");
-            Log(la.Report());
-
-            if (!Hub.Config.Legality.ForceTradePartnerInfo)
-            {
-                return false;
-            }
-
-            // Attempt to force Trade Partner Info by discarding the game version
-            Log("Trying to force Trade Partner Info discarding the game version...");
-            res.Version = pk.Version;
-            la = new LegalityAnalysis(res);
-
-            if (!la.Valid)
-            {
-                Log("Cannot apply Partner details:");
-                Log(la.Report());
-                return false;
-            }
-        }
-
         // Log the successful application of trade partner details
         Log($"Applying trade partner details: {partner.TrainerName}, " +
             $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)res.Version})");
 
         return true;
     }
-
 
     private bool HasSetDetails(PKM set, ITrainerInfo fallback)
     {

@@ -508,24 +508,10 @@ namespace SysBot.Pokemon
             // Clone the original Pokémon
             res = pk.Clone();
 
-            // Check if the species is None, Ditto, or the trade type is not specific
-            if ((Species)pk.Species is Species.None or Species.Ditto || trade.Type is not PokeTradeType.Specific)
-            {
-                Log("Cannot apply Partner details: Not a specific trade request.");
-                return false;
-            }
-
             // Check if the Pokémon is not native and trade partner info should not be forced
             if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
             {
                 Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
-                return false;
-            }
-
-            // Check if the Pokémon already has set trainer details
-            if (HasSetDetails(pk, fallback: sav))
-            {
-                Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
             }
 
@@ -543,36 +529,6 @@ namespace SysBot.Pokemon
                 res.PID = (uint)(((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF));
             }
 
-            // Refresh checksum if invalid
-            if (!pk.ChecksumValid)
-            {
-                res.RefreshChecksum();
-            }
-
-            // Perform legality analysis on the modified Pokémon
-            var la = new LegalityAnalysis(res);
-            if (!la.Valid)
-            {
-                Log("Cannot apply Partner details:");
-                Log(la.Report());
-
-                if (!Hub.Config.Legality.ForceTradePartnerInfo)
-                {
-                    return false;
-                }
-
-                Log("Trying to force Trade Partner Info discarding the game version...");
-                res.Version = pk.Version;
-                la = new LegalityAnalysis(res);
-
-                if (!la.Valid)
-                {
-                    Log("Cannot apply Partner details:");
-                    Log(la.Report());
-                    return false;
-                }
-            }
-
             // Log the successful application of trade partner details
             Log($"Applying trade partner details: {partner.TrainerName} " +
                 $"({(partner.Gender == 0 ? "M" : "F")}), TID: {partner.TID7:000000}, " +
@@ -581,7 +537,6 @@ namespace SysBot.Pokemon
 
             return true;
         }
-
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {

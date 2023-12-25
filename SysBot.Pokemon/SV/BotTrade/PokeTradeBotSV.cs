@@ -463,27 +463,6 @@ namespace SysBot.Pokemon
             // Clone the original Pokémon
             res = pk.Clone();
 
-            // Check if the species is None, Ditto, or the trade type is not specific
-            if ((Species)pk.Species is Species.None or Species.Ditto || trade.Type is not PokeTradeType.Specific)
-            {
-                Log("Cannot apply Partner details: Not a specific trade request.");
-                return false;
-            }
-
-            // Check if the Pokémon is not native and trade partner info should not be forced
-            if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
-            {
-                Log("Cannot apply Partner details: Current handler cannot be different gen OT.");
-                return false;
-            }
-
-            // Check if the Pokémon already has set trainer details
-            if (HasSetDetails(pk, fallback: sav))
-            {
-                Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
-                return false;
-            }
-
             // Apply partner details to the Pokémon
             res.OT_Name = partner.TrainerName;
             res.OT_Gender = partner.Info.Gender;
@@ -496,48 +475,6 @@ namespace SysBot.Pokemon
             if (pk.IsShiny)
             {
                 res.PID = (uint)((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF);
-            }
-
-            // Refresh checksum if invalid
-            if (!pk.ChecksumValid)
-            {
-                res.RefreshChecksum();
-            }
-
-            // Perform legality analysis on the modified Pokémon
-            var la = new LegalityAnalysis(res);
-            if (!la.Valid)
-            {
-                // Attempt to resolve legality by reverting the version and refreshing checksum
-                res.Version = pk.Version;
-                if (!pk.ChecksumValid)
-                {
-                    res.RefreshChecksum();
-                }
-
-                la = new LegalityAnalysis(res);
-                if (!la.Valid)
-                {
-                    Log("Cannot apply Partner details:");
-                    Log(la.Report());
-
-                    if (!Hub.Config.Legality.ForceTradePartnerInfo)
-                    {
-                        return false;
-                    }
-
-                    // Try forcing trade partner info by discarding the game version
-                    Log("Trying to force Trade Partner Info discarding the game version...");
-                    res.Version = pk.Version;
-                    la = new LegalityAnalysis(res);
-
-                    if (!la.Valid)
-                    {
-                        Log("Cannot apply Partner details:");
-                        Log(la.Report());
-                        return false;
-                    }
-                }
             }
 
             // Log the successful application of trade partner details
