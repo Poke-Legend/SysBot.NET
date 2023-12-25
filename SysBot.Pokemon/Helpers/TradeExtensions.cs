@@ -338,36 +338,28 @@ namespace SysBot.Pokemon
             }
         }
 
-         public static string PokeImg(PKM pkm, bool canGmax, bool fullSize)
+        public static string PokeImg(PKM pkm, bool canGmax, bool fullSize)
         {
-            
+            // Base URL setup
             string baseUrl = fullSize
-                ? "https://raw.githubusercontent.com/Poke-Legend/HomeImages/master/128x128/poke_capture_"
-                : "https://raw.githubusercontent.com/Poke-Legend/HomeImages/master/128x128/poke_capture_";
+                ? "https://raw.githubusercontent.com/zyro670/HomeImages/master/512x512/poke_capture_"
+                : "https://raw.githubusercontent.com/zyro670/HomeImages/master/128x128/poke_capture_";
 
             // Format species and form
             string speciesFormatted = pkm.Species.ToString("D4");
-            string formFormatted = pkm.Form.ToString("D3");
-            
+            int form = DetermineForm(pkm, canGmax);
+            string formFormatted = form.ToString("D3");
+
             // Determine gender code
             string genderCode = DetermineGenderCode(pkm);
 
-            if (pkm.Species is (ushort)Species.Basculegion)
-            {
-                if (pkm.Gender is 0)
-                {
-                 pkm.Form.ToString("001");
-                }
-                else
-                {
-                 pkm.Form.ToString("D3");
-                }
-                    
-            }
-                // Construct the image URL
+            // Special handling for Sneasel and Basculegion
+            HandleSpecialSpecies(pkm, ref genderCode, ref form);
+
+            // Construct the image URL
             string shinyCode = pkm.IsShiny ? "r" : "n";
             string gmaxCode = canGmax ? "g" : "n";
-            string alcremieSuffix = (pkm.Species == (int)Species.Alcremie && !canGmax) ? $"0000000{pkm.Data[0xE4]}" : "00000000";
+            string alcremieSuffix = pkm.Species == (int)Species.Alcremie && !canGmax ? $"0000000{pkm.Data[0xE4]}" : "00000000";
 
             return $"{baseUrl}{speciesFormatted}_{formFormatted}_{genderCode}_{gmaxCode}_{alcremieSuffix}_f_{shinyCode}.png";
         }
@@ -375,9 +367,8 @@ namespace SysBot.Pokemon
         private static string DetermineGenderCode(PKM pkm)
         {
             if (Enum.IsDefined(typeof(GenderDependent), pkm.Species) && pkm.Form == 0)
-            {
                 return pkm.Gender == 0 ? "md" : "fd";
-            }
+
             return pkm.PersonalInfo switch
             {
                 { OnlyFemale: true } => "fo",
@@ -386,6 +377,28 @@ namespace SysBot.Pokemon
                 _ => "mf"
             };
         }
+
+        private static int DetermineForm(PKM pkm, bool canGmax)
+        {
+            return pkm.Species switch
+            {
+                (int)Species.Sinistea or (int)Species.Polteageist or (int)Species.Rockruff or (int)Species.Mothim => 0,
+                (int)Species.Alcremie when pkm.IsShiny || canGmax => 0,
+                _ => pkm.Form,
+            };
+        }
+
+        private static void HandleSpecialSpecies(PKM pkm, ref string genderCode, ref int form)
+        {
+            if (pkm.Species == (ushort)Species.Sneasel || pkm.Species == (ushort)Species.Basculegion)
+            {
+                genderCode = pkm.Gender == 0 ? "md" : "fd";
+                form = pkm.Species == (ushort)Species.Basculegion ? pkm.Gender : form;
+            }
+        }
+
+
+       
 
         public static void EncounterScaleLogs(PK9 pk, string filepath = "")
         {
