@@ -108,11 +108,6 @@ namespace SysBot.Pokemon.Discord
                         Author = author,
                         Color = Color.Red
                     }
-                    .WithDescription(imsg)
-                    .WithThumbnailUrl("https://sysbots.net/wp-content/uploads/2023/09/logosys.png")
-                    .WithCurrentTimestamp()
-                    .Build();
-
 
                     await ReplyAsync(null, false, oopsEmbed).ConfigureAwait(false);
                     return;
@@ -161,11 +156,9 @@ namespace SysBot.Pokemon.Discord
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
         public async Task TradeAsyncAttatch()
         {
-            var code = Info.GetRandomTradeCode();
             await TradeAsyncAttach(code).ConfigureAwait(false);
         }
 
-        
         [Command("banTrade")]
         [Alias("bt")]
         [RequireQueueRole(nameof(DiscordManager.FavoredRoles))]
