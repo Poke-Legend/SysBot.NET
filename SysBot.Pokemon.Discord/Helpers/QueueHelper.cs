@@ -180,11 +180,11 @@ namespace SysBot.Pokemon.Discord
 
             if (pk.HeldItem == 0)
             {
-                footerIcon = $"https://raw.githubusercontent.com/BakaKaito/HomeImages/Home3.0/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
+                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
             }
             else
             {
-                footerIcon = $"https://raw.githubusercontent.com/BakaKaito/HomeImages/Home3.0/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
+                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
             }
             var author = new EmbedAuthorBuilder
             {
@@ -279,7 +279,7 @@ namespace SysBot.Pokemon.Discord
 
             if (pk.HeldItem == 0)
             {
-                thumbnailURL = $"https://raw.githubusercontent.com/BakaKaito/HomeImages/Home3.0/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
+                thumbnailURL = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
             }
             else
             {

@@ -74,7 +74,7 @@ namespace SysBot.Pokemon.Discord
             {
                 var shiny = fin.ShinyXor == 0 ? "■" : fin.ShinyXor <= 16 ? "★" : "";
                 var set = new ShowdownSet($"{fin.Species}");
-                var ballImg = $"https://raw.githubusercontent.com/BakaKaito/HomeImages/main/Ballimg/50x50/" + $"{(Ball)fin.Ball}ball".ToLower() + ".png";
+                var ballImg = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/" + $"{(Ball)fin.Ball}ball".ToLower() + ".png";
                 var gender = fin.Gender == 0 ? " - (M)" : fin.Gender == 1 ? " - (F)" : "";
                 var pokeImg = TradeExtensions<T>.PokeImg(fin, false, false);
                 var trademessage = $"Pokémon IVs: {fin.IV_HP}/{fin.IV_ATK}/{fin.IV_DEF}/{fin.IV_SPA}/{fin.IV_SPD}/{fin.IV_SPE}\n" +
