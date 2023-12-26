@@ -14,6 +14,8 @@ using static SysBot.Pokemon.Discord.Helpers.EggColors;
 using SysBot.Pokemon.Discord.Helpers;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using MathNet.Numerics;
+using static System.Net.WebRequestMethods;
 
 namespace SysBot.Pokemon.Discord
 {
@@ -178,7 +180,7 @@ namespace SysBot.Pokemon.Discord
             }
             else
             {
-                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
+                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";  
             }
             var author = new EmbedAuthorBuilder
             {
@@ -273,12 +275,16 @@ namespace SysBot.Pokemon.Discord
 
             if (pk.HeldItem == 0)
             {
-                thumbnailURL = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
+                // Set a default thumbnail URL when there is no held item.
+                // Replace with the appropriate URL or path for the default image.
+                thumbnailURL = "https://sysbots.net/wp-content/uploads/2023/09/logosys.png";
             }
             else
             {
+                // Use the ItemImg method to get the URL for the held item.
                 thumbnailURL = await TradeExtensions<PK9>.ItemImg(itemName);
             }
+
 
             Embed = new EmbedBuilder
             {

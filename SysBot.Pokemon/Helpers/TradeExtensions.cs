@@ -291,10 +291,18 @@ namespace SysBot.Pokemon
             }
         }
 
+        /// <summary>
+        /// Asynchronously fetches the image URL for a given item name from specified sources.
+        /// If the item image is not found, returns a default 'no image' URL.
+        /// </summary>
+        /// <param name="itemName">The name of the item to fetch the image for.</param>
+        /// <returns>The URL of the item image or a default image URL if not found.</returns>
         public static async Task<string> ItemImg(string itemName)
         {
+            // Sanitize the item name to remove any non-word characters and convert to lower case.
             string sanitizedItemName = Regex.Replace(itemName, @"[^\w\.]+", "").ToLower();
 
+            // Define a list of URL patterns where the item images can be found.
             var urlPatterns = new List<string>
     {
         "https://www.serebii.net/itemdex/sprites/pgl/{0}.png",
@@ -302,6 +310,7 @@ namespace SysBot.Pokemon
         "https://www.serebii.net/itemdex/sprites/legends/{0}.png",
     };
 
+            // Check each URL pattern to find a valid image URL.
             foreach (var pattern in urlPatterns)
             {
                 string testUrl = string.Format(pattern, sanitizedItemName);
@@ -311,6 +320,7 @@ namespace SysBot.Pokemon
                 }
             }
 
+            // Return a default image URL if no valid image URL is found.
             return "https://sysbots.net/wp-content/uploads/2023/12/No-image-found.jpg";
         }
 
