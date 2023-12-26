@@ -517,15 +517,6 @@ namespace SysBot.Pokemon
             }
         }
 
-        private void LogAppliedPartnerDetails(TradePartnerSV partner, PK9 pokemon)
-        {
-            string genderSymbol = partner.Info.Gender == 0 ? "M" : "F";
-            Log($"Applying trade partner details: {partner.TrainerName} ({genderSymbol}), TID: {partner.Info.DisplayTID:000000}, SID: {partner.Info.DisplaySID:0000}, {(LanguageID)partner.Info.Language} ({(GameVersion)pokemon.Version})");
-        }
-
-
-
-
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {
             var set_trainer = new SimpleTrainerInfo((GameVersion)set.Version)
