@@ -460,62 +460,64 @@ namespace SysBot.Pokemon
 
         private bool CanUsePartnerDetails(PK9 pk, SAV9SV sav, TradePartnerSV partner, PokeTradeDetail<PK9> trade, out PK9 res)
         {
-            res = ClonePokemon(pk);
+            res = pk.Clone();
 
-            if (!CanOverrideTrainerDetails(pk, sav))
+            //Current handler cannot be past gen OT
+            if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
             {
-                LogCannotApplyPartnerDetails();
+                Log("Can not apply Partner details: Current handler cannot be different gen OT.");
                 return false;
             }
 
-            ApplyPartnerDetails(partner, ref res);
-            AdjustPIDForShinyPokemon(pk, ref res);
-            RefreshChecksumIfInvalid(pk, ref res);
-            LogAppliedPartnerDetails(partner, res);
+            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            if (HasSetDetails(pk, fallback: sav))
+            {
+                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+                return false;
+            }
+
+            res.OT_Name = partner.TrainerName;
+            res.OT_Gender = partner.Info.Gender;
+            res.TrainerTID7 = partner.Info.DisplayTID;
+            res.TrainerSID7 = partner.Info.DisplaySID;
+            res.Language = partner.Info.Language;
+            res.Version = partner.Info.Game;
+
+            if (pk.IsShiny)
+                res.PID = (uint)((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF);
+
+            if (!pk.ChecksumValid)
+                res.RefreshChecksum();
+
+            var la = new LegalityAnalysis(res);
+            if (!la.Valid)
+            {
+                Log("Can not apply Partner details:");
+                Log(la.Report());
+
+                if (!Hub.Config.Legality.ForceTradePartnerInfo)
+                    return false;
+
+                Log("Trying to force Trade Partner Info discarding the game version...");
+                res.Version = pk.Version;
+                la = new LegalityAnalysis(res);
+
+                if (!la.Valid)
+                {
+                    Log("Can not apply Partner details:");
+                    Log(la.Report());
+                    return false;
+                }
+            }
+
+            Log($"Applying trade partner details: {partner.TrainerName} ({(partner.Info.Gender == 0 ? "M" : "F")}), " +
+                $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Info.Language} ({(GameVersion)res.Version})");
 
             return true;
         }
 
-        private static PK9 ClonePokemon(PK9 pokemon)
-        {
-            return pokemon.Clone();
-        }
 
-        private bool CanOverrideTrainerDetails(PK9 pokemon, SAV9SV saveFile)
-        {
-            return !HasSetDetails(pokemon, fallback: saveFile);
-        }
 
-        private void LogCannotApplyPartnerDetails()
-        {
-            Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
-        }
-
-        private static void ApplyPartnerDetails(TradePartnerSV partner, ref PK9 pokemon)
-        {
-            pokemon.OT_Name = partner.TrainerName;
-            pokemon.OT_Gender = partner.Info.Gender;
-            pokemon.TrainerTID7 = partner.Info.DisplayTID;
-            pokemon.TrainerSID7 = partner.Info.DisplaySID;
-            pokemon.Language = partner.Info.Language;
-            pokemon.Version = partner.Info.Game;
-        }
-
-        private static void AdjustPIDForShinyPokemon(PK9 original, ref PK9 pokemon)
-        {
-            if (original.IsShiny)
-            {
-                pokemon.PID = (uint)(((pokemon.TID16 ^ pokemon.SID16 ^ (pokemon.PID & 0xFFFF) ^ original.ShinyXor) << 16) | (pokemon.PID & 0xFFFF));
-            }
-        }
-
-        private static void RefreshChecksumIfInvalid(PK9 original, ref PK9 pokemon)
-        {
-            if (!original.ChecksumValid)
-            {
-                pokemon.RefreshChecksum();
-            }
-        }
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {

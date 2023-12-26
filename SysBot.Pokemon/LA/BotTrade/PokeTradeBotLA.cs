@@ -575,72 +575,60 @@ namespace SysBot.Pokemon
 
         private bool CanUsePartnerDetails(PA8 pk, SAV8LA sav, TradePartnerLA partner, PokeTradeDetail<PA8> trade, out PA8 res)
         {
-            res = ClonePokemon(pk);
+            res = pk.Clone();
 
-            if (IsTrainerDetailsSet(pk, sav))
+           //Current handler cannot be past gen OT
+            if (!pk.IsNative && !Hub.Config.Legality.ForceTradePartnerInfo)
             {
-                LogTrainerDetailsSet();
+                Log("Can not apply Partner details: Current handler cannot be different gen OT.");
                 return false;
             }
 
-            ApplyPartnerDetailsToPokemon(partner, ref res);
-            AdjustPIDForShinyPokemonIfNeeded(pk, ref res);
-            RefreshChecksumIfInvalid(pk, ref res);
-            LogSuccessfulApplicationOfPartnerDetails(partner, res);
+            //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
+            if (HasSetDetails(pk, fallback: sav))
+            {
+                Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
+                return false;
+            }
+
+            res.OT_Name = partner.TrainerName;
+            res.OT_Gender = partner.Gender;
+            res.TrainerTID7 = partner.TID7;
+            res.TrainerSID7 = partner.SID7;
+            res.Language = partner.Language;
+            res.Version = partner.Game;
+
+            if (pk.IsShiny)
+                res.PID = (uint)(((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF));
+
+            if (!pk.ChecksumValid)
+                res.RefreshChecksum();
+
+            var la = new LegalityAnalysis(res);
+            if (!la.Valid)
+            {
+                Log("Can not apply Partner details:");
+                Log(la.Report());
+
+                if (!Hub.Config.Legality.ForceTradePartnerInfo)
+                    return false;
+
+                Log("Trying to force Trade Partner Info discarding the game version...");
+                res.Version = pk.Version;
+                la = new LegalityAnalysis(res);
+
+                if (!la.Valid)
+                {
+                    Log("Can not apply Partner details:");
+                    Log(la.Report());
+                    return false;
+                }
+            }
+
+            Log($"Applying trade partner details: {partner.TrainerName} ({(partner.Gender == 0 ? "M" : "F")}), " +
+                $"TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)res.Version})");
 
             return true;
-        }
-
-        private static PA8 ClonePokemon(PA8 pokemon)
-        {
-            return pokemon.Clone();
-        }
-
-        private bool IsTrainerDetailsSet(PA8 pokemon, SAV8LA saveFile)
-        {
-            return HasSetDetails(pokemon, fallback: saveFile);
-        }
-
-        private void LogTrainerDetailsSet()
-        {
-            Log("Cannot apply Partner details: Requested Pokémon already has set Trainer details.");
-        }
-
-        private static void ApplyPartnerDetailsToPokemon(TradePartnerLA partner, ref PA8 pokemon)
-        {
-            pokemon.OT_Name = partner.TrainerName;
-            pokemon.OT_Gender = partner.Gender;
-            pokemon.TrainerTID7 = partner.TID7;
-            pokemon.TrainerSID7 = partner.SID7;
-            pokemon.Language = partner.Language;
-            pokemon.Version = partner.Game;
-        }
-
-        private static void AdjustPIDForShinyPokemonIfNeeded(PA8 original, ref PA8 pokemon)
-        {
-            if (original.IsShiny)
-            {
-                pokemon.PID = CalculateAdjustedPID(original, pokemon);
-            }
-        }
-
-        private static uint CalculateAdjustedPID(PA8 original, PA8 pokemon)
-        {
-            return (uint)(((pokemon.TID16 ^ pokemon.SID16 ^ (pokemon.PID & 0xFFFF) ^ original.ShinyXor) << 16) | (pokemon.PID & 0xFFFF));
-        }
-
-        private static void RefreshChecksumIfInvalid(PA8 original, ref PA8 pokemon)
-        {
-            if (!original.ChecksumValid)
-            {
-                pokemon.RefreshChecksum();
-            }
-        }
-
-        private void LogSuccessfulApplicationOfPartnerDetails(TradePartnerLA partner, PA8 pokemon)
-        {
-            string genderSymbol = partner.Gender == 0 ? "M" : "F";
-            Log($"Applying trade partner details: {partner.TrainerName} ({genderSymbol}), TID: {partner.TID7:000000}, SID: {partner.SID7:0000}, {(LanguageID)partner.Language} ({(GameVersion)pokemon.Version})");
         }
 
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
