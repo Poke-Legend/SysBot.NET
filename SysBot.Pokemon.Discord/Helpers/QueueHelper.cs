@@ -134,8 +134,6 @@ namespace SysBot.Pokemon.Discord
                 return false;
             }
 
-
-
             var position = Info.CheckPosition(userID, type);
 
             var ticketID = "";
@@ -151,13 +149,6 @@ namespace SysBot.Pokemon.Discord
             EmbedMsg = msg2;
             Queuepos = $" You are in queue #{position.Position} \n{msg}";
 
-            var botct = Info.Hub.Bots.Count;
-            if (position.Position > botct)
-            {
-                var eta = Info.Hub.Config.Queues.EstimateDelay(position.Position, botct);
-                ETA = $"Estimated Wait: {eta:F1} minutes. \n";
-                msg += ETA;
-            }
             return true;
         }
 
@@ -193,8 +184,6 @@ namespace SysBot.Pokemon.Discord
                 Text = Queuepos + ETA + DateTime.Now
 
             };
-
-
 
             string formOrHeldItem = string.IsNullOrEmpty(form) ? itemName : form;
             string heldItemLabel = string.IsNullOrEmpty(form) ? "" : "**HeldItem:** ";
