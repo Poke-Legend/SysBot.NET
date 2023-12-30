@@ -20,6 +20,7 @@ namespace SysBot.Pokemon.Discord
         private const string fork = "https://github.com/Koi-3088/ForkBot.NET";
         private const string notfork = "https://github.com/zyro670/NotForkBot.NET";
         private const string manufork = "https://github.com/Manu098vm/SysBot.NET";
+        private const string DeVryFork = "https://github.com/Poke-Legend/SysBot.NET";
 
         [Command("info")]
         [Alias("about", "whoami", "owner")]
@@ -34,6 +35,7 @@ namespace SysBot.Pokemon.Discord
             };
 
             builder.AddField("Info",
+                $"- [DeVry's Fork Source Code]({DeVryFork})\n" +
                 $"- [Manu's Fork Source Code]({manufork})\n" +
                 $"- [Zyro's Fork Source Code]({notfork})\n" +
                 $"- [Koi's Fork Source Code]({fork})\n" +

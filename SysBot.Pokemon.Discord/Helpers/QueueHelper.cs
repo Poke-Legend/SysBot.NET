@@ -224,12 +224,12 @@ namespace SysBot.Pokemon.Discord
             string ivText = areAllIVsMaxed ? "**IVs**: 6IV\n" :
                 $"**IVs**: {string.Join(" / ", new[]
                 {
-        pk.IV_HP != 31 ? $"{pk.IV_HP} HP" : "",
-        pk.IV_ATK != 31 ? $"{pk.IV_ATK} ATK" : "",
-        pk.IV_DEF != 31 ? $"{pk.IV_DEF} DEF" : "",
-        pk.IV_SPA != 31 ? $"{pk.IV_SPA} SPA" : "",
-        pk.IV_SPD != 31 ? $"{pk.IV_SPD} SPD" : "",
-        pk.IV_SPE != 31 ? $"{pk.IV_SPE} SPE" : ""
+            pk.IV_HP != 31 ? $"{pk.IV_HP} HP" : "",
+            pk.IV_ATK != 31 ? $"{pk.IV_ATK} ATK" : "",
+            pk.IV_DEF != 31 ? $"{pk.IV_DEF} DEF" : "",
+            pk.IV_SPA != 31 ? $"{pk.IV_SPA} SPA" : "",
+            pk.IV_SPD != 31 ? $"{pk.IV_SPD} SPD" : "",
+            pk.IV_SPE != 31 ? $"{pk.IV_SPE} SPE" : ""
                 }.Where(s => !string.IsNullOrEmpty(s)))}\n";
 
             List<string> evStats = new List<string>();
@@ -246,6 +246,7 @@ namespace SysBot.Pokemon.Discord
             string abilityText = $"**Ability**: {(Ability)pk.Ability}\n";
             string teraTypeText = $"**Tera Type**: {(MoveType)teraType}\n";
             string levelText = pk.CurrentLevel != 1 ? $"**Level**: {pk.CurrentLevel}\n" : "";
+            string languageText = $"**Language**: {(LanguageID)pk.Language}\n";
 
             string natureText = $"**{(Nature)pk.Nature}** **Nature** \n";
             string movesHeaderText = "**Moves**:\n";
@@ -299,7 +300,7 @@ namespace SysBot.Pokemon.Discord
             Embed.Fields.Add(new EmbedFieldBuilder
             {
                 Name = $"{nameText}",
-                Value = $"{formText}{heldItemText}{ivText}{evText}{abilityText}{teraTypeText}{levelText}{natureText}",
+                Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{teraTypeText}{levelText}{natureText}",
                 IsInline = true
             });
             Embed.Fields.Add(new EmbedFieldBuilder
