@@ -291,15 +291,14 @@ namespace SysBot.Pokemon.Discord
                 ThumbnailUrl = thumbnailURL,
                 Author = author,
                 Footer = footer,
-
                 ImageUrl = imageUrl,
-
             };
             Embed.Fields.Add(new EmbedFieldBuilder
             {
                 Name = $"{nameText}",
                 Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{teraTypeText}{levelText}{natureText}",
-                IsInline = false
+                IsInline = true,
+                
             });
             Embed.Fields.Add(new EmbedFieldBuilder
             {
@@ -307,7 +306,6 @@ namespace SysBot.Pokemon.Discord
                 Value = movesText,
                 IsInline = false
             });
-
             var channel = await trader.CreateDMChannelAsync().ConfigureAwait(false);
             await channel.SendMessageAsync(embed: Embed.Build()).ConfigureAwait(false);
         }
