@@ -300,7 +300,7 @@ namespace SysBot.Pokemon
         public static async Task<string> ItemImg(string itemName)
         {
             // Sanitize the item name to remove any non-word characters and convert to lower case.
-            string sanitizedItemName = Regex.Replace(itemName, @"[^\w\.]+", "").ToLower();
+            string sanitizedItemName = Regex.Replace(itemName, @"[^\w\.\-]+", "").ToLower();
 
             // Define a list of URL patterns where the item images can be found.
             var urlPatterns = new List<string>

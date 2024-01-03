@@ -159,6 +159,9 @@ namespace SysBot.Pokemon.Discord
             return true;
         }
 
+
+
+
         private static async Task AddToTradeQueueEmbed(T pk, SocketUser trader, string msg, string msg2)
         {
             var nickName = pk.Species == 0 ? string.Empty : $" ({pk.Nickname})";
@@ -286,23 +289,25 @@ namespace SysBot.Pokemon.Discord
             Embed = new EmbedBuilder
             {
                 Color = GetDiscordColor(pk.IsShiny ? ShinyMap[((Species)pk.Species, pk.Form)] : (PersonalColor)pk.PersonalInfo.Color),
+                
                 ThumbnailUrl = thumbnailURL,
                 Author = author,
                 Footer = footer,
                 ImageUrl = imageUrl,
-            };
+             };
             Embed.Fields.Add(new EmbedFieldBuilder
             {
                 Name = $"{nameText}",
-                Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{teraTypeText}{levelText}{natureText}",
-                IsInline = true,
+                Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{teraTypeText}{levelText}{natureText}", 
+                IsInline = false,
                 
             });
             Embed.Fields.Add(new EmbedFieldBuilder
             {
                 Name = movesHeaderText,
                 Value = movesText,
-                IsInline = false
+                IsInline = false,
+
             });
             var channel = await trader.CreateDMChannelAsync().ConfigureAwait(false);
             await channel.SendMessageAsync(embed: Embed.Build()).ConfigureAwait(false);
