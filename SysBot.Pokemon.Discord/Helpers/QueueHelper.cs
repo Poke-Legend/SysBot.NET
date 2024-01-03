@@ -192,8 +192,6 @@ namespace SysBot.Pokemon.Discord
 
             };
 
-
-
             string formOrHeldItem = string.IsNullOrEmpty(form) ? itemName : form;
             string heldItemLabel = string.IsNullOrEmpty(form) ? "" : "**HeldItem:** ";
             string movesList = "";
