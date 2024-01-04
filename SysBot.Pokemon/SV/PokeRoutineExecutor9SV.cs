@@ -183,8 +183,6 @@ namespace SysBot.Pokemon
 
         public async Task ReOpenGame(PokeTradeHubConfig config, CancellationToken token)
         {
-            // Reopen the game if we get soft-banned
-            Log("Potential soft-ban detected, reopening game just in case!");
             await CloseGame(config, token).ConfigureAwait(false);
             await StartGame(config, token).ConfigureAwait(false);
         }
