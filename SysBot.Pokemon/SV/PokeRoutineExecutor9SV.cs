@@ -165,19 +165,24 @@ namespace SysBot.Pokemon
 
         protected virtual async Task EnterLinkCode(int code, PokeTradeHubConfig config, CancellationToken token)
         {
-            await Task.Delay(2_000, token).ConfigureAwait(false);
+            // This method enters a link code by simulating key presses.
+            // It uses directional arrows (or similar inputs) for code entry.
+            // Note: Hid keys can also be used, but manual user input is typically slower than automated bot input.
 
-            //Thanks Berichan
-            //https://github.com/berichan/SysBot.PokemonScarletViolet/blob/234739c7b2c47bf3a7ced779172dd9083a73c7a5/SysBot.Pokemon/SV/PokeRoutineExecutor9.cs#LL140C14-L140C14
-            var codeChars = $"{code:00000000}".ToCharArray();
-            var keysToPress = new HidKeyboardKey[codeChars.Length];
-            for (var i = 0; i < codeChars.Length; ++i)
+            // Retrieve the sequence of key presses required for the given code.
+            var keyPresses = TradeUtil.GetPresses(code);
+
+            // Iterate through each key press in the sequence.
+            foreach (var key in keyPresses)
             {
-                keysToPress[i] = (HidKeyboardKey)Enum.Parse(typeof(HidKeyboardKey), codeChars[i] >= 'A' && codeChars[i] <= 'Z' ? $"{codeChars[i]}" : $"D{codeChars[i]}");
-                await Connection.SendAsync(SwitchCommand.TypeKey(keysToPress[i]), token).ConfigureAwait(false);
-                await Task.Delay(HidWaitTime, token).ConfigureAwait(false);
+                // Retrieve the configured delay between key presses from the config.
+                int delayBetweenPresses = config.Timings.KeypressTime;
+
+                // Simulate the key press with the specified delay.
+                await Click(key, delayBetweenPresses, token).ConfigureAwait(false);
             }
-            // Confirm Code outside of this method (allow synchronization)
+
+            // Note: Confirmation of the code entry should be handled outside of this method to allow for synchronization.
         }
 
         public async Task ReOpenGame(PokeTradeHubConfig config, CancellationToken token)

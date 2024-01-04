@@ -65,6 +65,10 @@ namespace SysBot.Pokemon
         // Stores whether the last trade was Distribution with fixed code, in which case we don't need to re-enter the code.
         private bool LastTradeDistributionFixed;
 
+
+        // Track the last Pokémon we were offered since it persists between trades.
+        private byte[] lastOffered = new byte[8];
+
         public override async Task MainLoop(CancellationToken token)
         {
             try
@@ -258,37 +262,15 @@ namespace SysBot.Pokemon
                     return PokeTradeResult.RecoverStart;
                 }
             }
-
             else if (StartFromOverworld && !await ConnectAndEnterPortal(token).ConfigureAwait(false))
             {
                 await RecoverToOverworld(token).ConfigureAwait(false);
                 return PokeTradeResult.RecoverStart;
             }
 
-            //If we reach there, we should be correctly connected. Bot will crash if not. Extra connection online check just to be sure.
-            if (!await IsConnectedOnline(ConnectedOffset, token).ConfigureAwait(false))
-            {
-                Log("Disconnection detected. Trying to reinitialize...");
-                await RecoverToOverworld(token).ConfigureAwait(false);
-                await ConnectAndEnterPortal(token).ConfigureAwait(false);
-                await RecoverToOverworld(token).ConfigureAwait(false);
-                StartFromOverworld = true;
-                return PokeTradeResult.RecoverStart;
-            }
-
-            // Retrieve the TradeData from the poke object
             var toSend = poke.TradeData;
-
-            // Check if the species of the Pokémon to send is not 0 (indicating a valid Pokémon)
             if (toSend.Species != 0)
-            {
-                // Asynchronously set the Pokémon in the box at the specified offset
                 await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
-            }
-
-
-            // Line for Trade Display Notifier
-            TradeExtensions<PK9>.SVTrade = toSend;
 
             // Assumes we're freshly in the Portal and the cursor is over Link Trade.
             Log("Selecting Link Trade.");
@@ -340,7 +322,11 @@ namespace SysBot.Pokemon
             }
             if (!partnerFound)
             {
-                await RecoverToPortal(token).ConfigureAwait(false);
+                if (!await RecoverToPortal(token).ConfigureAwait(false))
+                {
+                    Log("Failed to recover to portal.");
+                    await RecoverToOverworld(token).ConfigureAwait(false);
+                }
                 return PokeTradeResult.NoTrainerFound;
             }
 
@@ -354,7 +340,11 @@ namespace SysBot.Pokemon
                 if (++cnt > 20) // Didn't make it in after 10 seconds.
                 {
                     await Click(A, 1_000, token).ConfigureAwait(false); // Ensures we dismiss a popup.
-                    await RecoverToPortal(token).ConfigureAwait(false);
+                    if (!await RecoverToPortal(token).ConfigureAwait(false))
+                    {
+                        Log("Failed to recover to portal.");
+                        await RecoverToOverworld(token).ConfigureAwait(false);
+                    }
                     return PokeTradeResult.RecoverOpenBox;
                 }
             }
@@ -362,7 +352,7 @@ namespace SysBot.Pokemon
 
             var tradePartner = await GetTradePartnerInfo(token).ConfigureAwait(false);
             var trainerNID = await GetTradePartnerNID(TradePartnerNIDOffset, token).ConfigureAwait(false);
-            RecordUtil<PokeTradeBotSV>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.TrainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
+            RecordUtil<PokeTradeBotSWSH>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.TrainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
             Log($"Found Link Trade partner: {tradePartner.TrainerName}-{tradePartner.TID7} (ID: {trainerNID})");
 
             var partnerCheck = await CheckPartnerReputation(this, poke, trainerNID, tradePartner.TrainerName, AbuseSettings, token);
@@ -373,18 +363,14 @@ namespace SysBot.Pokemon
                 return partnerCheck;
             }
 
-            if (Hub.Config.Trade.UseTradePartnerDetails && CanUsePartnerDetails(toSend, sav, tradePartner, poke, out var toSendEdited))
+            // Hard check to verify that the offset changed from the last thing offered from the previous trade.
+            // This is because box opening times can vary per person, the offset persists between trades, and can also change offset between trades.
+            var tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, 10_000, 0_500, false, true, token).ConfigureAwait(false);
+            if (!tradeOffered)
             {
-                // Update the Pokémon to be sent with the edited details
-                toSend = toSendEdited;
-
-                // Set the Pokémon in the box with the updated details
-                await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
-
-                // Update the trade extension with the modified Pokémon
-                TradeExtensions<PK9>.SVTrade = toSend;
+                await ExitTradeToPortal(false, token).ConfigureAwait(false);
+                return PokeTradeResult.TrainerTooSlow;
             }
-
 
             poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
 
@@ -405,9 +391,8 @@ namespace SysBot.Pokemon
                 return PokeTradeResult.TrainerTooSlow;
             }
 
-            PokeTradeResult update;
             var trainer = new PartnerDataHolder(0, tradePartner.TrainerName, tradePartner.TID7);
-            (toSend, update) = await GetEntityToSend(sav, poke, offered, oldEC, toSend, trainer, token).ConfigureAwait(false);
+            (toSend, PokeTradeResult update) = await GetEntityToSend(sav, poke, offered, oldEC, toSend, trainer, token).ConfigureAwait(false);
             if (update != PokeTradeResult.Success)
             {
                 await ExitTradeToPortal(false, token).ConfigureAwait(false);
@@ -450,9 +435,8 @@ namespace SysBot.Pokemon
             // Log for Trade Abuse tracking.
             LogSuccessfulTrades(poke, trainerNID, tradePartner.TrainerName);
 
-            // Still need to wait out the trade animation.
-            for (var i = 0; i < 30; i++)
-                await Click(B, 0_500, token).ConfigureAwait(false);
+            // Sometimes they offered another mon, so store that immediately upon leaving Union Room.
+            lastOffered = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
 
             await ExitTradeToPortal(false, token).ConfigureAwait(false);
             return PokeTradeResult.Success;
