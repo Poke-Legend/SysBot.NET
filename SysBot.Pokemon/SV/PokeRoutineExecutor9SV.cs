@@ -177,7 +177,6 @@ namespace SysBot.Pokemon
                 await Connection.SendAsync(SwitchCommand.TypeKey(keysToPress[i]), token).ConfigureAwait(false);
                 await Task.Delay(HidWaitTime, token).ConfigureAwait(false);
             }
-            await Task.Delay(0_750, token).ConfigureAwait(false);
             // Confirm Code outside of this method (allow synchronization)
         }
 
