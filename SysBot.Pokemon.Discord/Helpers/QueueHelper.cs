@@ -159,8 +159,106 @@ namespace SysBot.Pokemon.Discord
             return true;
         }
 
+        public static async Task AddToMysteryEggQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, int catchID = 0)
+        {
+            LogUtil.LogText($"Starting AddToMysteryEggQueueAsync for trader {trainer}");
+
+            var userID = trader.Id;
+            var trainerInfo = new PokeTradeTrainerInfo(trainer, userID);
+            var notifier = new DiscordTradeNotifier<T>(trade, trainerInfo, code, trader, context);
+            var tradeDetail = new PokeTradeDetail<T>(trade, trainerInfo, notifier, type, code);
 
 
+            tradeDetail.IsMysteryTrade = true;
+
+            if ((uint)code > MaxTradeCode)
+            {
+                await SendEmbedMessage(context, "Trade code should be 00000000-99999999!", trade).ConfigureAwait(false);
+
+                return;
+            }
+
+            try
+            {
+                const string helper = "I've added you to the mystery queue! I'll message you here when your trade is starting.";
+                var embedHelper = new EmbedBuilder()
+                {
+                    Color = GetDiscordColor(trade.IsShiny ? ShinyMap[((Species)trade.Species, trade.Form)] : (PersonalColor)trade.PersonalInfo.Color),
+                    Description = helper,
+                    ImageUrl = "https://raw.githubusercontent.com/Poke-Legend/HomeIMG/97a2b209f9d0483a8e237fe2a89d78547b4ea232/Sprites/512x512/MysteryEgg.png"
+                };
+
+
+                IUserMessage test = await trader.SendMessageAsync(embed: embedHelper.Build()).ConfigureAwait(false);
+
+
+                var hub = SysCord<T>.Runner.Hub;
+                var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var msg2, catchID);
+
+
+                if (hub.Config.Trade.UseTradeEmbeds)
+                {
+
+                    if (Added == QueueResultAdd.AlreadyInQueue)
+                    {
+                        await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
+                    }
+                    else if (type is PokeTradeType.Mystery && Added != QueueResultAdd.AlreadyInQueue)
+                    {
+                        // Modified section starts here
+                        var footer = new EmbedFooterBuilder
+                        {
+                            Text = $"{Queuepos}\nRequested on: {DateTime.Now.ToString("D", CultureInfo.CurrentCulture)} at {DateTime.Now.ToString("t", CultureInfo.CurrentCulture)}"
+                        };
+                        var name = trader.Username;
+                        var author = new EmbedAuthorBuilder
+                        {
+                            Name = $"{name}'s{(trade.IsShiny ? " Shiny" : "")} Pokémon",
+                            IconUrl = trader.GetAvatarUrl(),
+                        };
+                        var embedToSend = new EmbedBuilder
+                        {
+                            Title = " ❓❓ Mystery Egg Trade ❓❓ \n Check your DM's for the Trade Code!",
+                            Color = GetDiscordColor(trade.IsShiny ? ShinyMap[((Species)trade.Species, trade.Form)] : (PersonalColor)trade.PersonalInfo.Color),
+                            Author = author,
+                            ThumbnailUrl = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/80x80/{((Ball)trade.Ball).ToString().ToLower()}ball.png",
+                            Footer = footer,
+                            ImageUrl = "https://raw.githubusercontent.com/Poke-Legend/HomeIMG/97a2b209f9d0483a8e237fe2a89d78547b4ea232/Sprites/512x512/MysteryEgg.png" // Replace with your image URL
+                        };
+
+                        await context.Channel.SendMessageAsync(embed: embedToSend.Build()).ConfigureAwait(false);
+                        // Modified section ends here
+                    }
+                }
+                else
+                {
+                    await SendEmbedMessage(context, msg, trade).ConfigureAwait(false);
+                }
+
+
+
+               await SendEmbedMessageToUser(trader, $"Your trade code will be **{code:0000 0000}**.", trade).ConfigureAwait(false);
+
+
+                if (result && !context.IsPrivate)
+                {
+
+                    await context.Message.DeleteAsync(RequestOptions.Default).ConfigureAwait(false);
+
+                }
+                else if (!result)
+                {
+
+                    await test.DeleteAsync().ConfigureAwait(false);
+
+                }
+            }
+            catch (HttpException ex)
+            {
+                LogUtil.LogText($"Caught HttpException: {ex.Message}");
+                await HandleDiscordExceptionAsync(context, trader, ex).ConfigureAwait(false);
+            }
+        }
 
         private static async Task AddToTradeQueueEmbed(T pk, SocketUser trader, string msg, string msg2)
         {

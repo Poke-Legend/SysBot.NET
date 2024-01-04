@@ -43,6 +43,8 @@ namespace SysBot.Pokemon
         /// <summary> Indicates if the trade data is currently being traded. </summary>
         public bool IsProcessing;
 
+        public bool IsMysteryTrade { get; set; }
+
         public PokeTradeDetail(TPoke pkm, PokeTradeTrainerInfo info, IPokeTradeNotifier<TPoke> notifier, PokeTradeType type, int code, bool favored = false)
         {
             ID = Interlocked.Increment(ref CreatedCount) % 3000;

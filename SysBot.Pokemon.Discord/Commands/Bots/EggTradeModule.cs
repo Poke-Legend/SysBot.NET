@@ -73,10 +73,10 @@ public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             await ReplyAsync(null, false, oopsEmbed).ConfigureAwait(false);
         }
     }
-    private static Task<PKM> TradeEggAsync(ITrainerInfo sav, int speciesId)
+    private PKM TradeEgg(ITrainerInfo sav, int speciesId)
     {
         var set = new ShowdownSet($"Pokemon/{speciesId}"); // Corrected syntax here
-        return Task.FromResult(EggTradeHelper.TradeEgg(sav, set));
+        return EggTradeHelper.TradeEgg(sav, set);
     }
 
 

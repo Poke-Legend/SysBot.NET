@@ -6,6 +6,7 @@
         Specific,
         Seed,
         Clone,
+        Mystery,
         Dump,
         FixOT,
         Giveaway,
