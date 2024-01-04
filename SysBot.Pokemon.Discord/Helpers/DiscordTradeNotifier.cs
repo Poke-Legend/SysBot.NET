@@ -23,7 +23,6 @@ namespace SysBot.Pokemon.Discord
             Info = info;
             Code = code;
             Trader = trader;
-            Context = context; // Initializing the non-nullable Context property
         }
 
 
