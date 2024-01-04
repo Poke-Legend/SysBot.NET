@@ -10,16 +10,16 @@ namespace SysBot.Pokemon.Discord.Helpers
         // URLs
         public static Dictionary<PersonalColor, string> ColorToImageUrl = new Dictionary<PersonalColor, string>
         {
-            { PersonalColor.Red, "https://i.imgur.com/bYKR3QR.png" },
-            { PersonalColor.Blue, "https://i.imgur.com/L74uJf6.png" },
-            { PersonalColor.Yellow, "https://i.imgur.com/As5tZfq.png" },
-            { PersonalColor.Green, "https://i.imgur.com/f61zCSc.png" },
-            { PersonalColor.Black, "https://i.imgur.com/FxAtz42.png" },
-            { PersonalColor.Brown, "https://i.imgur.com/2uZABue.png" },
-            { PersonalColor.Purple, "https://i.imgur.com/MFNvS13.png" },
-            { PersonalColor.Gray, "https://i.imgur.com/ZTgB7wQ.png" },
-            { PersonalColor.White, "https://i.imgur.com/TBrao98.png" },
-            { PersonalColor.Pink, "https://i.imgur.com/HvO8MMQ.png" }
+            { PersonalColor.Red, "https://sysbots.net/wp-content/uploads/2024/01/bYKR3QR.png" },
+            { PersonalColor.Blue, "https://sysbots.net/wp-content/uploads/2024/01/L74uJf6.png" },
+            { PersonalColor.Yellow, "https://sysbots.net/wp-content/uploads/2024/01/As5tZfq.png" },
+            { PersonalColor.Green, "https://sysbots.net/wp-content/uploads/2024/01/f61zCSc.png" },
+            { PersonalColor.Black, "https://sysbots.net/wp-content/uploads/2024/01/FxAtz42.png" },
+            { PersonalColor.Brown, "https://sysbots.net/wp-content/uploads/2024/01/2uZABue.png" },
+            { PersonalColor.Purple, "https://sysbots.net/wp-content/uploads/2024/01/MFNvS13.png" },
+            { PersonalColor.Gray, "https://sysbots.net/wp-content/uploads/2024/01/ZTgB7wQ.png" },
+            { PersonalColor.White, "https://sysbots.net/wp-content/uploads/2024/01/TBrao98.png" },
+            { PersonalColor.Pink, "https://sysbots.net/wp-content/uploads/2024/01/HvO8MMQ.png" }
         };
 
         // Define the EggColor enum

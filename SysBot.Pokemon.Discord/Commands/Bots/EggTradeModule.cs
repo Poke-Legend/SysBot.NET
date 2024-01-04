@@ -13,8 +13,7 @@ using Microsoft.VisualBasic.FileIO;
 public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
     private static TradeQueueInfo<T> Info => SysCord<T>.Runner.Hub.Queues.Info;
-    private readonly PersonalTable9SV personalTable9SV; // Declare personalTable9SV variable
-
+   
     [Command("egg")]
     [Alias("e")]
     [Summary("Trades an egg to the user based on the provided Showdown Set.")]
@@ -44,7 +43,7 @@ public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>(); // Modify the arguments as needed
 
             // Call the TradeEggAsync method from the EggTradeHelper class
-            var egg = await EggTradeHelper.TradeEggAsync(sav, set).ConfigureAwait(false);
+            var egg = EggTradeHelper.TradeEgg(sav, set);
 
             // Get a Link Trade code
             int code = Info.GetRandomTradeCode();
@@ -74,10 +73,10 @@ public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             await ReplyAsync(null, false, oopsEmbed).ConfigureAwait(false);
         }
     }
-    private async Task<PKM> TradeEggAsync(ITrainerInfo sav, int speciesId)
+    private static Task<PKM> TradeEggAsync(ITrainerInfo sav, int speciesId)
     {
         var set = new ShowdownSet($"Pokemon/{speciesId}"); // Corrected syntax here
-        return await EggTradeHelper.TradeEggAsync(sav, set).ConfigureAwait(false);
+        return Task.FromResult(EggTradeHelper.TradeEgg(sav, set));
     }
 
 
@@ -127,7 +126,7 @@ public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
     }
     public static class EggTradeHelper
     {
-        public static async Task<PKM> TradeEggAsync(ITrainerInfo sav, ShowdownSet set)
+        public static PKM TradeEgg(ITrainerInfo sav, ShowdownSet set)
         {
             LogUtil.LogText($"TradeEggAsync - Species: {set.Species}");
 
@@ -156,7 +155,7 @@ public class EggTradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
                 else if (pkm is PK9)
                 {
                     TradeExtensions<PK9>.EggTrade(pkm, template); // Assuming PK9, change to corresponding PKX class if needed
-                }                                              
+                }
 
                 var la = new LegalityAnalysis(pkm);
                 var spec = GameInfo.Strings.Species[template.Species];
