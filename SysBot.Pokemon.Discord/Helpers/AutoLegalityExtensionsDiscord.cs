@@ -22,7 +22,7 @@ namespace SysBot.Pokemon.Discord
                 var template = AutoLegalityWrapper.GetTemplate(set);
                 var pkm = sav.GetLegal(template, out var result);
                 if (pkm is PK8 && pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species))
-					TradeExtensions<PK8>.EggTrade(pkm, template);
+                    TradeExtensions<PK8>.EggTrade(pkm, template);
                 else if (pkm is PB8 && pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species))
                     TradeExtensions<PB8>.EggTrade(pkm, template);
                 else if (pkm is PK9 && pkm.Nickname.ToLower() == "egg" && Breeding.CanHatchAsEgg(pkm.Species))
@@ -32,15 +32,25 @@ namespace SysBot.Pokemon.Discord
                 var spec = GameInfo.Strings.Species[template.Species];
                 if (!la.Valid)
                 {
-                    var reason = result == "Timeout" ? $"That {spec} set took too long to generate." : result == "VersionMismatch" ? "Request refused: PKHeX and Auto-Legality Mod version mismatch." : $"I wasn't able to create a {spec} from that set."; 
-                    var imsg = $"Oops! {reason}";
+                    var reason = result == "Timeout" ? $"That {spec} set took too long to generate." : result == "VersionMismatch" ? "Request refused: PKHeX and Auto-Legality Mod version mismatch." : $"I wasn't able to create a {spec} from that set.";
+                    var imsg = $"Oops! **{reason}**";
                     if (result == "Failed")
                         imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(template, sav, pkm)}";
+
+                    var oopsEmbed = new EmbedBuilder()
+                    {
+
+                        Color = Color.Red
+                    }
+                    .WithDescription(imsg)
+                    .WithThumbnailUrl("https://sysbots.net/wp-content/uploads/2023/08/logosysflyout.png")
+                    .WithCurrentTimestamp()
+                    .Build();
                     await channel.SendMessageAsync(imsg).ConfigureAwait(false);
                     return;
                 }
 
-                var msg = $"Here's your ({result}) legalized PKM for {spec} ({la.EncounterOriginal.Name})!";
+                var msg = $"Here's your (**{result}**) legalized Pokemon for {spec} ({la.EncounterOriginal.Name})!";
                 await channel.SendPKMAsync(pkm, msg + $"\n{ReusableActions.GetFormattedShowdownText(pkm)}").ConfigureAwait(false);
             }
             catch (Exception ex)
