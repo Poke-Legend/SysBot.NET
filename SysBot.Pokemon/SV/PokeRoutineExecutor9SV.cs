@@ -181,8 +181,7 @@ namespace SysBot.Pokemon
                 // Simulate the key press with the specified delay.
                 await Click(key, delayBetweenPresses, token).ConfigureAwait(false);
             }
-
-            // Note: Confirmation of the code entry should be handled outside of this method to allow for synchronization.
+            // Confirm Code outside of this method (allow synchronization)
         }
 
         public async Task ReOpenGame(PokeTradeHubConfig config, CancellationToken token)

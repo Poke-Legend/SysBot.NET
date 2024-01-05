@@ -67,10 +67,6 @@ namespace SysBot.Pokemon
         // Track the last Pokémon we were offered since it persists between trades.
         private byte[] lastOffered = new byte[8];
 
-
-        // Track the last Pokémon we were offered since it persists between trades.
-        private byte[] lastOffered = new byte[8];
-
         public override async Task MainLoop(CancellationToken token)
         {
             try
@@ -373,6 +369,17 @@ namespace SysBot.Pokemon
                 return PokeTradeResult.TrainerTooSlow;
             }
 
+            if (Hub.Config.Trade.UseTradePartnerDetails && CanUsePartnerDetails(toSend, sav, tradePartner, poke, out var toSendEdited))
+            {
+                // Update the Pokémon to be sent with the edited details
+                toSend = toSendEdited;
+
+                // Set the Pokémon in the box with the updated details
+                await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
+
+                // Update the trade extension with the modified Pokémon
+                TradeExtensions<PK9>.SVTrade = toSend;
+            }
 
             poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
 
