@@ -464,7 +464,7 @@ namespace SysBot.Pokemon
 
             // Not Useful
             //Only override trainer details if user didn't specify OT details in the Showdown/PK9 request
-           /* if (HasSetDetails(pk, fallback: sav))
+            /* if (HasSetDetails(pk, fallback: sav))
             {
                 Log("Can not apply Partner details: Requested Pokémon already has set Trainer details.");
                 return false;
@@ -476,6 +476,9 @@ namespace SysBot.Pokemon
             res.TrainerSID7 = partner.Info.DisplaySID;
             res.Language = partner.Info.Language;
             res.Version = partner.Info.Game;
+
+            if (!pk.IsNicknamed)
+                res.ClearNickname();
 
             if (pk.IsShiny)
                 res.PID = (uint)((res.TID16 ^ res.SID16 ^ (res.PID & 0xFFFF) ^ pk.ShinyXor) << 16) | (res.PID & 0xFFFF);
