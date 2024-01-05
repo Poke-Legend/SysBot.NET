@@ -67,6 +67,10 @@ namespace SysBot.Pokemon
         // Track the last Pokémon we were offered since it persists between trades.
         private byte[] lastOffered = new byte[8];
 
+
+        // Track the last Pokémon we were offered since it persists between trades.
+        private byte[] lastOffered = new byte[8];
+
         public override async Task MainLoop(CancellationToken token)
         {
             try
@@ -350,19 +354,6 @@ namespace SysBot.Pokemon
             var tradePartner = await GetTradePartnerInfo(token).ConfigureAwait(false);
             var trainerNID = await GetTradePartnerNID(TradePartnerNIDOffset, token).ConfigureAwait(false);
             RecordUtil<PokeTradeBotSWSH>.Record($"Initiating\t{trainerNID:X16}\t{tradePartner.TrainerName}\t{poke.Trainer.TrainerName}\t{poke.Trainer.ID}\t{poke.ID}\t{toSend.EncryptionConstant:X8}");
-           
-            if (Hub.Config.Trade.UseTradePartnerDetails && CanUsePartnerDetails(toSend, sav, tradePartner, poke, out var toSendEdited))
-            {
-                // Update the Pokémon to be sent with the edited details
-                toSend = toSendEdited;
-
-                // Set the Pokémon in the box with the updated details
-                await SetBoxPokemonAbsolute(BoxStartOffset, toSend, token, sav).ConfigureAwait(false);
-
-                // Update the trade extension with the modified Pokémon
-                TradeExtensions<PK9>.SVTrade = toSend;
-            }
-
             Log($"Found Link Trade partner: {tradePartner.TrainerName}-{tradePartner.TID7} (ID: {trainerNID})");
 
             var partnerCheck = await CheckPartnerReputation(this, poke, trainerNID, tradePartner.TrainerName, AbuseSettings, token);
@@ -381,6 +372,7 @@ namespace SysBot.Pokemon
                 await ExitTradeToPortal(false, token).ConfigureAwait(false);
                 return PokeTradeResult.TrainerTooSlow;
             }
+
 
             poke.SendNotification(this, $"Found Link Trade partner: {tradePartner.TrainerName}. Waiting for a Pokémon...");
 
