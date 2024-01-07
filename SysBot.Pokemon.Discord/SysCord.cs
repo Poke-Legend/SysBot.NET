@@ -221,7 +221,7 @@ namespace SysBot.Pokemon.Discord
             var mgr = Manager;
             if (!mgr.CanUseCommandUser(msg.Author.Id))
             {
-                await msg.Channel.SendMessageAsync("You are not permitted to use this command.").ConfigureAwait(false);
+                await msg.Channel.SendMessageAsync("You are not authorized to use the commands!").ConfigureAwait(false);
                 return true;
             }
             if (!mgr.CanUseCommandChannel(msg.Channel.Id) && msg.Author.Id != mgr.Owner)
@@ -233,7 +233,7 @@ namespace SysBot.Pokemon.Discord
                 }
 
                 if (Hub.Config.Discord.ReplyCannotUseCommandInChannel)
-                    await msg.Channel.SendMessageAsync("You can't use that command here.").ConfigureAwait(false);
+                    await msg.Channel.SendMessageAsync("You need to be channel whitelisted by the owner of the bot, Please contact the bot owner to be accepted into channel whitelisting.").ConfigureAwait(false);
                 return true;
             }
 
