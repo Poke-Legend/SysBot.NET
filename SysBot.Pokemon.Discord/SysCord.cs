@@ -233,7 +233,7 @@ namespace SysBot.Pokemon.Discord
                 }
 
                 if (Hub.Config.Discord.ReplyCannotUseCommandInChannel)
-                    await msg.Channel.SendMessageAsync("You need to be channel whitelisted by the owner of the bot, Please contact the bot owner to be accepted into channel whitelisting.").ConfigureAwait(false);
+                    await msg.Channel.SendMessageAsync("You need to be channel whitelisted by the creator of the Sysbot, Please contact the Sysbot creator to be accepted into channel whitelisting.").ConfigureAwait(false);
                 return true;
             }
 
