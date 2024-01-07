@@ -16,6 +16,8 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using MathNet.Numerics;
 using static System.Net.WebRequestMethods;
+using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace SysBot.Pokemon.Discord
 {
@@ -26,7 +28,6 @@ namespace SysBot.Pokemon.Discord
         private static EmbedBuilder Embed { get; set; } = new();
 
         private static string? ETA;
-        private static string? EmbedMsg;
         private static string? Queuepos;
         private static QueueResultAdd? Added;
 
@@ -50,7 +51,7 @@ namespace SysBot.Pokemon.Discord
                 var hub = SysCord<T>.Runner.Hub;
 
                 // Try adding
-                var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var msg2, catchID);
+                var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, catchID);
 
 
                 // Notify in channel
@@ -62,7 +63,7 @@ namespace SysBot.Pokemon.Discord
                     }
                     if (type is PokeTradeType.Specific && Added != QueueResultAdd.AlreadyInQueue)
                     {
-                        await AddToTradeQueueEmbed(trade, trader, msg, msg2);
+                        await AddToTradeQueueEmbed(trade, trader, msg);
                         await context.Channel.SendMessageAsync(embed: Embed.Build()).ConfigureAwait(false);
                     }
                 }
@@ -101,14 +102,14 @@ namespace SysBot.Pokemon.Discord
         }
 
       
-        private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, out string msg2, int catchID = 0)
+        private static bool AddToTradeQueue(SocketCommandContext context, T pk, int code, string trainerName, RequestSignificance sig, PokeRoutineType type, PokeTradeType t, SocketUser trader, out string msg, int catchID = 0)
         {
 
             var userID = trader.Id;
             var name = trader.Username;
 
             var trainer = new PokeTradeTrainerInfo(trainerName, userID);
-            var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, trader, context);
+            var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, trader);
             var detail = new PokeTradeDetail<T>(pk, trainer, notifier, t, code, sig == RequestSignificance.Favored);
             var trade = new TradeEntry<T>(detail, userID, type, name);
             var mgr = SysCordSettings.Manager;
@@ -130,8 +131,7 @@ namespace SysBot.Pokemon.Discord
                 context.Channel.SendMessageAsync(embed: embed.Build());
 
                 msg = "";
-                msg2 = "";
-                return false;
+               return false;
             }
 
             var position = Info.CheckPosition(userID, type);
@@ -142,11 +142,9 @@ namespace SysBot.Pokemon.Discord
 
             var pokeName = "";
             if ((t == PokeTradeType.Specific || t == PokeTradeType.SupportTrade || t == PokeTradeType.Giveaway) && pk.Species != 0)
-                pokeName = $"{(hub.Config.Trade.UseTradeEmbeds ? "" : t == PokeTradeType.SupportTrade && pk.Species != (int)Species.Ditto && pk.HeldItem != 0 ? $" Receiving: {(Species)pk.Species} ({ShowdownParsing.GetShowdownText(pk).Split('@', '\n')[1].Trim()})" : $" Receiving: {(Species)pk.Species}. ")}";
+            pokeName = $"{(hub.Config.Trade.UseTradeEmbeds ? "" : t == PokeTradeType.SupportTrade && pk.Species != (int)Species.Ditto && pk.HeldItem != 0 ? $" Receiving: {(Species)pk.Species} ({ShowdownParsing.GetShowdownText(pk).Split('@', '\n')[1].Trim()})" : $" Receiving: {(Species)pk.Species}. ")}";
             string? pokeName2 = $" Receiving: {(t == PokeTradeType.SupportTrade && pk.Species != (int)Species.Ditto && pk.HeldItem != 0 ? $"{(Species)pk.Species} ({ShowdownParsing.GetShowdownText(pk).Split('@', '\n')[1].Trim()})" : $"{(Species)pk.Species}")}.";
             msg = $" Trade Code sent to DM. \n ";
-            msg2 = $"{trader.Mention} - Thank you for ordering via {type} please trade with us again soon{ticketID}. ";
-            EmbedMsg = msg2;
             Queuepos = $" You are in queue #{position.Position} \n{msg}";
 
             var botct = Info.Hub.Bots.Count;
@@ -165,7 +163,7 @@ namespace SysBot.Pokemon.Discord
 
             var userID = trader.Id;
             var trainerInfo = new PokeTradeTrainerInfo(trainer, userID);
-            var notifier = new DiscordTradeNotifier<T>(trade, trainerInfo, code, trader, context);
+            var notifier = new DiscordTradeNotifier<T>(trade, trainerInfo, code, trader);
             var tradeDetail = new PokeTradeDetail<T>(trade, trainerInfo, notifier, type, code);
 
 
@@ -193,7 +191,7 @@ namespace SysBot.Pokemon.Discord
 
 
                 var hub = SysCord<T>.Runner.Hub;
-                var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, out var msg2, catchID);
+                var result = AddToTradeQueue(context, trade, code, trainer, sig, routine, type, trader, out var msg, catchID);
 
 
                 if (hub.Config.Trade.UseTradeEmbeds)
@@ -260,7 +258,7 @@ namespace SysBot.Pokemon.Discord
             }
         }
 
-        private static async Task AddToTradeQueueEmbed(T pk, SocketUser trader, string msg, string msg2)
+        private static async Task AddToTradeQueueEmbed(T pk, SocketUser trader, string msg)
         {
             var nickName = pk.Species == 0 ? string.Empty : $" ({pk.Nickname})";
             LogUtil.LogText($"This is the nickname {nickName}.");
@@ -272,14 +270,14 @@ namespace SysBot.Pokemon.Discord
             var itemName = items[pk.HeldItem];
 
             string footerIcon;
-         
+
             if (pk.HeldItem == 0)
             {
                 footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
             }
             else
             {
-                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";  
+                footerIcon = $"https://raw.githubusercontent.com/Poke-Legend/HomeIMG/main/Ballimg/128x128/{((Ball)pk.Ball).ToString().ToLower()}ball.png";
             }
             var author = new EmbedAuthorBuilder
             {
@@ -303,14 +301,16 @@ namespace SysBot.Pokemon.Discord
                     movesList += $"- {(Move)pk.Moves[i]}\n";
                 }
             }
-
+        
             var teraType = Tera9RNG.GetTeraType(Tera9RNG.GetOriginalSeed(pk), GemType.Default, (ushort)pk.Species, pk.Form);
-
+                                  
             // Add '**' before and after genderText to make it bold
             var genderText = pk.Gender == 0 ? " (M)" : pk.Gender == 1 ? " (F)" : "";
 
             // Create a variable for the name section
             string nameText = $"{(pk.IsShiny ? "✨ " : "")}{(Species)pk.Species}{genderText}\n";
+            string nameText2 = $"Terastalize";
+            string nameText3 = $"Nature";
             string formText = $"{(!string.IsNullOrEmpty(form) ? $" **Form**: {form}" : "")}\n";
             // Create variables for the other sections
             string heldItemText = pk.HeldItem != 0 ? $"**Held Item**: {itemName}\n" : "";
@@ -338,10 +338,9 @@ namespace SysBot.Pokemon.Discord
             if (pk.EV_SPE != 0) evStats.Add($"{pk.EV_SPE} SPE");
 
             string evText = evStats.Count > 0 ? $"**EVs**: {string.Join(" / ", evStats)}\n" : "";
-
-
+            
             string abilityText = $"**Ability**: {(Ability)pk.Ability}\n";
-            string teraTypeText = $"**Tera Type**: {(MoveType)teraType}\n";
+            string teraTypeText = $"**Type**: {(MoveType)teraType}\n";
             string levelText = pk.CurrentLevel != 1 ? $"**Level**: {pk.CurrentLevel}\n" : "";
             string languageText = $"**Language**: {(LanguageID)pk.Language}\n";
 
@@ -396,9 +395,22 @@ namespace SysBot.Pokemon.Discord
             Embed.Fields.Add(new EmbedFieldBuilder
             {
                 Name = $"{nameText}",
-                Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{teraTypeText}{levelText}{natureText}", 
+                Value = $"{formText}{heldItemText}{ivText}{evText}{languageText}{abilityText}{levelText}",
                 IsInline = false,
                 
+            });
+            Embed.Fields.Add(new EmbedFieldBuilder
+            {
+                 Name = $"{nameText2}",
+                 Value = $"{teraTypeText}", // Ensure teraTypeText is set appropriately
+                 IsInline = false,
+            });
+            Embed.Fields.Add(new EmbedFieldBuilder
+            {
+                Name = $"{nameText3}",
+                Value = $"{natureText}",
+                IsInline = false,
+
             });
             Embed.Fields.Add(new EmbedFieldBuilder
             {

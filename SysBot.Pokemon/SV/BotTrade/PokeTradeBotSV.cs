@@ -512,6 +512,7 @@ namespace SysBot.Pokemon
 
             return true;
         }
+
         private bool HasSetDetails(PKM set, ITrainerInfo fallback)
         {
             var set_trainer = new SimpleTrainerInfo((GameVersion)set.Version)
