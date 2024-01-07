@@ -419,6 +419,8 @@ namespace SysBot.Pokemon.Discord
                 IsInline = false,
 
             });
+
+
             var channel = await trader.CreateDMChannelAsync().ConfigureAwait(false);
             await channel.SendMessageAsync(embed: Embed.Build()).ConfigureAwait(false);
         }

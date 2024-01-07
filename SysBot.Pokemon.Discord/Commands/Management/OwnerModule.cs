@@ -33,28 +33,6 @@ namespace SysBot.Pokemon.Discord
             await ReplyAsync("Done.").ConfigureAwait(false);
         }
 
-        [Command("addChannel")]
-        [Summary("Adds a channel to the list of channels that are accepting commands.")]
-        [RequireOwner]
-        // ReSharper disable once UnusedParameter.Global
-        public async Task AddChannel()
-        {
-            var obj = GetReference(Context.Message.Channel);
-            SysCordSettings.Settings.ChannelWhitelist.AddIfNew(new[] { obj });
-            await ReplyAsync("Done.").ConfigureAwait(false);
-        }
-
-        [Command("removeChannel")]
-        [Summary("Removes a channel from the list of channels that are accepting commands.")]
-        [RequireOwner]
-        // ReSharper disable once UnusedParameter.Global
-        public async Task RemoveChannel()
-        {
-            var obj = GetReference(Context.Message.Channel);
-            SysCordSettings.Settings.ChannelWhitelist.RemoveAll(z => z.ID == obj.ID);
-            await ReplyAsync("Done.").ConfigureAwait(false);
-        }
-
         [Command("leave")]
         [Alias("bye")]
         [Summary("Leaves the current server.")]
