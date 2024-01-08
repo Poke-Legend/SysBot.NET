@@ -1036,6 +1036,7 @@ namespace SysBot.Pokemon.Discord.Helpers
             { (Flapple, 0), Green },
             { (Appletun, 0), Green },
             { (Dipplin, 0), Green },
+            { (Hydrapple, 0), Green },
             { (Silicobra, 0), Yellow },
             { (Sandaconda, 0), Black },
             { (Cramorant, 0), Red },
