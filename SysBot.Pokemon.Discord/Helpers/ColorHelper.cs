@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
 using PKHeX.Core;
 using Discord;
 using static PKHeX.Core.Species;
 using static PKHeX.Core.AutoMod.Aesthetics;
 using static PKHeX.Core.AutoMod.Aesthetics.PersonalColor;
-
 
 namespace SysBot.Pokemon.Discord.Helpers
 {
@@ -1249,7 +1247,6 @@ namespace SysBot.Pokemon.Discord.Helpers
                 default:
                     return Color.Default;
             }
-        }
 
         public static Color GetEggColor(PersonalColor personalColor)
         {
