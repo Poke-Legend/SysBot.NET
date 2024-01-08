@@ -382,7 +382,7 @@ namespace SysBot.Pokemon
             // Construct the image URL
             string shinyCode = pkm.IsShiny ? "r" : "n";
             string gmaxCode = canGmax ? "g" : "n";
-            string alcremieSuffix = pkm.Species == (int)Species.Alcremie && !canGmax ? $"0000000{pkm.Data[0xE4]}" : "00000000";
+            string alcremieSuffix = pkm.Species == (int)Species.Alcremie && !canGmax ? $"0000000{pkm.Data[0xD0]}" : "00000000";
 
             return $"{baseUrl}{speciesFormatted}_{formFormatted}_{genderCode}_{gmaxCode}_{alcremieSuffix}_f_{shinyCode}.png";
         }
