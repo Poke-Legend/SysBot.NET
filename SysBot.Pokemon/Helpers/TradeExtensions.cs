@@ -308,6 +308,7 @@ namespace SysBot.Pokemon
         "https://www.serebii.net/itemdex/sprites/pgl/{0}.png",
         "https://www.serebii.net/itemdex/sprites/sv/{0}.png",
         "https://www.serebii.net/itemdex/sprites/legends/{0}.png",
+        "https://www.serebii.net/itemdex/sprites/{0}.png",
     };
 
             // Check each URL pattern to find a valid image URL.

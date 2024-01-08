@@ -45,7 +45,7 @@ namespace SysBot.Pokemon
             APILegality.SetBattleVersion = cfg.SetBattleVersion;
             APILegality.Timeout = cfg.Timeout;
 
-            if (!(APILegality.AllowHOMETransferGeneration = !cfg.EnableHOMETrackerCheck))
+            if (!(APILegality.AllowHOMETransferGeneration = cfg.AllowHOMETransferGeneration))
                 typeof(ParseSettings).GetProperty(nameof(ParseSettings.Gen8TransferTrackerNotPresent))!.SetValue(null, Severity.Invalid);
 
             // We need all the encounter types present, so add the missing ones at the end.
